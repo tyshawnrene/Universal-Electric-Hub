@@ -223,3 +223,84 @@ To maximize our 36-hour sprint with a diverse technical lineup, responsibilities
 1. **The Shared Trench Dollar Calculator:** Going beyond simple map pins, our engine automatically computes potential savings. If FPL and a local municipal utility are trenching the same corridor in Miami or Naples within a 60-day window, the system calculates estimated heavy machinery and labor savings (e.g., *“Coordinated Trenching Savings: $420,000”*).
 2. **FERC Order 1920 Compliance Audit Trail:** A one-click export feature that compiles an executive compliance package proving interregional coordination efforts, solving an urgent regulatory pain point for utility legal teams.
 3. **Time-Slider Geospatial Playback:** A dynamic timeline scrubber on the map interface that allows users to watch upcoming Florida grid construction projects evolve chronologically, highlighting conflict zones in real time.
+
+
+
+
+# GridSync FL ⚡
+> **AI-Powered Transmission Interconnection & Regional Resource Coordination Engine**
+> *Built for the Grid Hackathon — Bridging FERC Order 1920 Compliance with Real-World Capital Optimization.*
+
+---
+
+## 🚀 Executive Summary
+Utilities operating along shared state lines and river basins (such as Dominion Energy South Carolina and Georgia Power) routinely plan transmission expansions and generation interconnections in operational silos. This results in redundant right-of-way clearing, conflicting outage schedules, and severe missed opportunities for capital sharing. 
+
+**GridSync FL** is an interactive spatial intelligence and AI-driven coordination platform that ingests project data, performs PostGIS spatial proximity clustering (aligned with FERC Order 1920 guidelines), and instantly generates executive-ready **AI Field Coordination & Cost-Savings Reports** when overlapping infrastructure is selected.
+
+---
+
+## 🛠️ Architecture & Tech Stack
+
+* **Frontend:** React / Vite with Tailwind CSS, Lucide Icons, and Leaflet.js (or Mapbox GL JS) for spatial rendering.
+* **Backend:** Python / Flask REST API.
+* **Database & Spatial Engine:** Supabase with the **PostGIS** extension enabled (`ST_DWithin`, spatial indexing).
+* **AI & Intelligence Layer:** Google Gemini 2.5 Flash via `google-genai` SDK using structured JSON outputs (`Pydantic`) for deterministic field reports.
+
+---
+
+## 👥 Team Roles & Work Breakdown Structure (WBS)
+
+To maximize our velocity over the next 30 hours, responsibilities are split cleanly into three tracks:
+
+### 1. Backend & Spatial Database Lead (`backend_dev`)
+* **Database Setup:** Initialize Supabase instance, enable PostGIS, and load records from `Projects_Overlaps.xlsx`.
+* **Spatial Queries:** Write optimized SQL/PostGIS queries to calculate project intersections and distances within defined tiers (< 1.6km, < 8km, < 40km).
+* **API Endpoints:** Build Flask routes `/api/projects` (returning GeoJSON) and `/api/coordination-report` (triggering Gemini).
+
+### 2. Frontend & Map UI Lead (`frontend_dev`)
+* **Layout Design:** Implement a split-screen dashboard with an interactive map on the left and a sliding detail drawer on the right.
+* **Map Integration:** Render transmission line geometry and project pins with color-coded proximity rings.
+* **Interactive State:** Handle click events on map markers to fetch and display the AI Field Coordination Report.
+
+### 3. AI Engineering & Integration Lead (`ai_lead`)
+* **Gemini Service Integration:** Configure the Google GenAI client and Pydantic response schemas for structural safety.
+* **Prompt Engineering:** Tune the system prompt to output precise cost-savings estimates and FERC Order 1920 compliance statements.
+* **Demo Narrative & Slide Deck:** Prepare the final presentation script and live-demo walkthrough for judges.
+
+---
+
+## 📈 Proximity Tiers & Business Logic
+
+The system categorizes infrastructure overlaps to automate logistical recommendations:
+1. **Touching / Crossing:** Mandates joint outage scheduling and crossing structure coordination.
+2. **Under 1.6 km (1 mile):** Direct land and right-of-way sharing opportunities (eminent domain/permitting savings).
+3. **Under 8 km (5 miles):** Shared laydown yards, heavy machinery deliveries, and regional contractor pools.
+4. **Under 40 km (25 miles):** Broad labor and crew-staging coordination.
+
+---
+
+## ⏱️ Order of Operations (Build Timeline)
+
+### Phase 1: Data Ingestion & Database Setup (Hours 0–4)
+- [ ] Clean and normalize `Projects_Overlaps.xlsx` into CSV/JSON format.
+- [ ] Provision Supabase and enable the PostGIS extension.
+- [ ] Create spatial tables and import project geometries (Lat/Long or LineStrings).
+- [ ] Verify spatial query outputs locally in Python/SQL.
+
+### Phase 2: Core Backend & AI Integration (Hours 4–12)
+- [ ] Scaffold Flask application structure (`app.py`, `services/`, `models/`).
+- [ ] Implement the PostGIS spatial proximity lookup endpoint in Flask.
+- [ ] Integrate the `google-genai` SDK and implement the `CoordinationReport` Pydantic schema.
+- [ ] Test API responses using Postman or `curl`.
+
+### Phase 3: Frontend Interface & Map Integration (Hours 12–22)
+- [ ] Initialize React + Vite project with Tailwind CSS.
+- [ ] Implement Leaflet map component to render GeoJSON data from the Flask backend.
+- [ ] Build the interactive side-panel drawer for project details.
+- [ ] Wire up frontend API calls to fetch and render the AI Field Coordination Report dynamically upon clicking an overlap.
+
+### Phase 4: Polish, Testing & Pitch Deck (Hours 22–30)
+- [ ] Perform end-to-end user flow testing (Map view $\rightarrow$ Click Overlap $\rightarrow$ AI Report Generation).
+- [ ] Add loading states, error handling, and clean UI polish.
+- [ ] Draft the final pitch presentation highlighting FERC compliance and multi-million dollar capital savings.
