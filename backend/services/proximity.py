@@ -50,7 +50,8 @@ def in_service_gap_days(a: Project, b: Project) -> int | None:
 
 def find_overlaps(projects: list[Project], max_km: float = 40.0) -> list[dict]:
     overlaps = []
-    for a, b in combinations(projects, 2):
+    located = [p for p in projects if p.lat is not None and p.lng is not None]
+    for a, b in combinations(located, 2):
         distance = haversine_km(a.lat, a.lng, b.lat, b.lng)
         if distance > max_km:
             continue

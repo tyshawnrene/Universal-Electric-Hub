@@ -1,20 +1,25 @@
 import React, { useEffect, useRef, useState } from "react";
 import { CircleMarker, MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
-import { createClient } from "@supabase/supabase-js";
 import "leaflet/dist/leaflet.css";
+import { fetchProjects, runCoordinationReport } from "./api";
 import "./App.css";
 
-// Replace with your actual Supabase credentials or env variables
-const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
 const ACCENT_BLUE = "#1d84f5";
 const ACCENT_GREEN = "#00afb8";
 const ACCENT_PURPLE = "#9d57de";
 
-function getProjectCoordinates(project) {
-  if (!project || project.latitude == null || project.longitude == null) return null;
+// The backend sends dates as "YYYY-MM-DD". new Date() would read that as UTC midnight,
+// which is the previous day in US time zones, so build a local date instead.
+function parseServiceDate(project) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(project?.in_service_date ?? "");
+  return match ? new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3])) : null;
+}
 
-  const latitudeValue = String(project.latitude).trim();
-  const longitudeValue = String(project.longitude).trim();
+function getProjectCoordinates(project) {
+  if (!project || project.lat == null || project.lng == null) return null;
+
+  const latitudeValue = String(project.lat).trim();
+  const longitudeValue = String(project.lng).trim();
   if (!latitudeValue || !longitudeValue) return null;
 
   const latitude = Number(latitudeValue);
@@ -34,10 +39,8 @@ function getProjectCoordinates(project) {
 }
 
 function isNewProject(project, now = new Date()) {
-  if (!project?.in_service_date) return false;
-
-  const serviceDate = new Date(project.in_service_date);
-  if (Number.isNaN(serviceDate.getTime())) return false;
+  const serviceDate = parseServiceDate(project);
+  if (!serviceDate) return false;
 
   return (
     serviceDate.getFullYear() > now.getFullYear() ||
@@ -108,6 +111,7 @@ function ArrowIcon() {
 
 export default function App() {
   const [projects, setProjects] = useState([]);
+  const [projectsError, setProjectsError] = useState(null);
   const [selectedIds, setSelectedIds] = useState([]);
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -167,11 +171,15 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    async function fetchProjects() {
-      const { data, error } = await supabase.from("projects").select("*");
-      if (!error && data) setProjects(data);
-    }
-    fetchProjects();
+    fetchProjects()
+      .then((data) => {
+        setProjects(data.projects);
+        setProjectsError(null);
+      })
+      .catch((err) => {
+        console.error("Failed to load projects:", err);
+        setProjectsError(err.message);
+      });
   }, []);
 
   const toggleSelect = (id) => {
@@ -179,12 +187,11 @@ export default function App() {
   };
 
   const getProjectYear = (project) => {
-    if (!project.in_service_date) return "";
-    const date = new Date(project.in_service_date);
-    return Number.isNaN(date.getTime()) ? "" : String(date.getFullYear());
+    const date = parseServiceDate(project);
+    return date ? String(date.getFullYear()) : "";
   };
 
-  const utilityOptions = [...new Set(projects.map((p) => p.utility_company).filter(Boolean))].sort((a, b) =>
+  const utilityOptions = [...new Set(projects.map((p) => p.utility).filter(Boolean))].sort((a, b) =>
     String(a).localeCompare(String(b)),
   );
   const yearOptions = [...new Set(projects.map(getProjectYear).filter(Boolean))].sort((a, b) => Number(b) - Number(a));
@@ -192,9 +199,9 @@ export default function App() {
     String(a).localeCompare(String(b)),
   );
   const filteredProjects = projects.filter((project) => {
-    const title = String(project.project_name ?? "").toLocaleLowerCase();
+    const title = String(project.name ?? "").toLocaleLowerCase();
     return (
-      (!filters.utility || project.utility_company === filters.utility) &&
+      (!filters.utility || project.utility === filters.utility) &&
       (!filters.year || getProjectYear(project) === filters.year) &&
       (!filters.state || project.state === filters.state) &&
       (!filters.newOnly || isNewProject(project)) &&
@@ -218,18 +225,7 @@ export default function App() {
     setReport(null);
 
     try {
-      const response = await fetch("http://localhost:8000/api/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ project_ids: selectedIds }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.detail || "Server error occurred during analysis.");
-      }
-
+      const data = await runCoordinationReport(selectedIds);
       setReport(data.report);
     } catch (err) {
       console.error("Agent error details:", err);
@@ -423,18 +419,16 @@ export default function App() {
                           className="ppl-project-name"
                           style={{ textAlign: "left", fontSize: "1.25rem", fontWeight: "bold", margin: 0 }}
                         >
-                          {p.project_name}
+                          {p.name}
                         </h3>
                         <p className="ppl-project-meta" style={{ textAlign: "left" }}>
-                          {p.utility_company}
+                          {p.utility}
                         </p>
                         <div
                           className="ppl-project-badges"
                           style={{ display: "flex", flexDirection: "row", gap: "4px", flexWrap: "wrap" }}
                         >
-                          {p.in_service_date && !isNaN(new Date(p.in_service_date).getTime()) && (
-                            <FlagPill tone={ACCENT_GREEN}>{new Date(p.in_service_date).getFullYear()}</FlagPill>
-                          )}
+                          {getProjectYear(p) && <FlagPill tone={ACCENT_GREEN}>{getProjectYear(p)}</FlagPill>}
                           {p.state && <FlagPill tone={ACCENT_PURPLE}>{p.state}</FlagPill>}
                           {isNewProject(p) && <FlagPill tone={ACCENT_BLUE}>New</FlagPill>}
                         </div>
@@ -442,7 +436,7 @@ export default function App() {
                           className="ppl-project-meta"
                           style={{ textAlign: "left", fontSize: "0.8rem", color: "#9ca3af" }}
                         >
-                          {p.project_scope}
+                          {p.scope}
                         </p>
                       </div>
 
@@ -451,7 +445,7 @@ export default function App() {
                         className="ppl-go-btn"
                         onClick={() => setFocusedProjectId(p.id)}
                         disabled={!getProjectCoordinates(p)}
-                        aria-label={`Show ${p.project_name} on map`}
+                        aria-label={`Show ${p.name} on map`}
                         style={{
                           width: "fit-content",
                           padding: "10px 15px",
@@ -476,7 +470,11 @@ export default function App() {
             ))
           ) : (
             <p className="empty-projects" role="status">
-              {projects.length ? "No projects match these filters." : "No project records found."}
+              {projectsError
+                ? `Couldn't load projects from the backend: ${projectsError}`
+                : projects.length
+                  ? "No projects match these filters."
+                  : "No project records found."}
             </p>
           )}
         </div>
@@ -529,10 +527,10 @@ export default function App() {
               <Marker position={coordinates}>
                 <Popup>
                   <div style={{ maxWidth: "220px" }}>
-                    <strong>{project.project_name}</strong>
+                    <strong>{project.name}</strong>
                     <br />
-                    <p style={{ margin: "5px 0", fontSize: "0.85rem" }}>{project.project_scope}</p>
-                    <em style={{ fontSize: "0.75rem" }}>Utility: {project.utility_company}</em>
+                    <p style={{ margin: "5px 0", fontSize: "0.85rem" }}>{project.scope}</p>
+                    <em style={{ fontSize: "0.75rem" }}>Utility: {project.utility}</em>
                   </div>
                 </Popup>
               </Marker>
