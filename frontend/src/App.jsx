@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { CircleMarker, MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import { createClient } from "@supabase/supabase-js";
 import "leaflet/dist/leaflet.css";
 import "./App.css";
@@ -9,6 +9,41 @@ const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env
 const ACCENT_BLUE = "#1d84f5";
 const ACCENT_GREEN = "#00afb8";
 const ACCENT_PURPLE = "#9d57de";
+
+function getProjectCoordinates(project) {
+  if (!project || project.latitude == null || project.longitude == null) return null;
+
+  const latitudeValue = String(project.latitude).trim();
+  const longitudeValue = String(project.longitude).trim();
+  if (!latitudeValue || !longitudeValue) return null;
+
+  const latitude = Number(latitudeValue);
+  const longitude = Number(longitudeValue);
+  if (
+    !Number.isFinite(latitude) ||
+    !Number.isFinite(longitude) ||
+    latitude < -90 ||
+    latitude > 90 ||
+    longitude < -180 ||
+    longitude > 180
+  ) {
+    return null;
+  }
+
+  return [latitude, longitude];
+}
+
+function MapFocusController({ latitude, longitude }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (latitude != null && longitude != null) {
+      map.flyTo([latitude, longitude], Math.max(map.getZoom(), 9), { duration: 0.8 });
+    }
+  }, [map, latitude, longitude]);
+
+  return null;
+}
 
 function FlagPill({ children, tone }) {
   return (
@@ -52,6 +87,7 @@ export default function App() {
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({ utility: "", year: "", state: "", title: "" });
+  const [focusedProjectId, setFocusedProjectId] = useState(null);
 
   useEffect(() => {
     async function fetchProjects() {
@@ -87,15 +123,11 @@ export default function App() {
       (!filters.title || title.includes(filters.title.trim().toLocaleLowerCase()))
     );
   });
-  const mappableProjects = filteredProjects.filter(
-    (project) =>
-      project.latitude != null &&
-      project.longitude != null &&
-      project.latitude !== "" &&
-      project.longitude !== "" &&
-      Number.isFinite(Number(project.latitude)) &&
-      Number.isFinite(Number(project.longitude)),
-  );
+  const mappableProjects = filteredProjects
+    .map((project) => ({ project, coordinates: getProjectCoordinates(project) }))
+    .filter(({ coordinates }) => coordinates);
+  const focusedProject = mappableProjects.find(({ project }) => project.id === focusedProjectId)?.project ?? null;
+  const focusedCoordinates = getProjectCoordinates(focusedProject);
   const hasActiveFilters = Object.values(filters).some(Boolean);
   const updateFilter = (name, value) => setFilters((current) => ({ ...current, [name]: value }));
 
@@ -335,10 +367,9 @@ export default function App() {
                       <button
                         type="button"
                         className="ppl-go-btn"
-                        /* onClick={() => onFocusProject?.(p)} */
-                        onClick={() => {
-                          console.log(p);
-                        }}
+                        onClick={() => setFocusedProjectId(p.id)}
+                        disabled={!getProjectCoordinates(p)}
+                        aria-label={`Show ${p.project_name} on map`}
                         style={{
                           width: "fit-content",
                           padding: "10px 15px",
@@ -376,17 +407,34 @@ export default function App() {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution="&copy; OpenStreetMap contributors"
           />
-          {mappableProjects.map((p) => (
-            <Marker key={p.id} position={[Number(p.latitude), Number(p.longitude)]}>
-              <Popup>
-                <div style={{ maxWidth: "220px" }}>
-                  <strong>{p.project_name}</strong>
-                  <br />
-                  <p style={{ margin: "5px 0", fontSize: "0.85rem" }}>{p.project_scope}</p>
-                  <em style={{ fontSize: "0.75rem" }}>Utility: {p.utility_company}</em>
-                </div>
-              </Popup>
-            </Marker>
+          <MapFocusController latitude={focusedCoordinates?.[0]} longitude={focusedCoordinates?.[1]} />
+          {mappableProjects.map(({ project, coordinates }) => (
+            <React.Fragment key={project.id}>
+              {project.id === focusedProjectId && (
+                <CircleMarker
+                  center={coordinates}
+                  radius={22}
+                  pathOptions={{
+                    color: "#60a5fa",
+                    weight: 3,
+                    opacity: 0.95,
+                    fillColor: "#3b82f6",
+                    fillOpacity: 0.2,
+                  }}
+                  interactive={false}
+                />
+              )}
+              <Marker position={coordinates}>
+                <Popup>
+                  <div style={{ maxWidth: "220px" }}>
+                    <strong>{project.project_name}</strong>
+                    <br />
+                    <p style={{ margin: "5px 0", fontSize: "0.85rem" }}>{project.project_scope}</p>
+                    <em style={{ fontSize: "0.75rem" }}>Utility: {project.utility_company}</em>
+                  </div>
+                </Popup>
+              </Marker>
+            </React.Fragment>
           ))}
         </MapContainer>
       </div>
