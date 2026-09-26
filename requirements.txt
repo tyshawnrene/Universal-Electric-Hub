@@ -4,12 +4,16 @@ folium
 pandas
 numpy
 scikit-learn
-requests
 
 fastapi
 uvicorn
 google-genai
-supabase
-pydantic
-python-dotenv
 requests
+
+flask>=3.0
+flask-cors>=5.0
+python-dotenv>=1.0
+pandas>=2.2
+openpyxl>=3.1
+pydantic>=2.7
+supabase>=2.5
