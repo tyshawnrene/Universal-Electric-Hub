@@ -193,13 +193,55 @@
 .app-shell {
   height: 100vh;
   height: 100dvh;
+  width: 100vw;
+  display: flex;
   min-width: 0;
   overflow: hidden;
 }
 
 .app-sidebar {
-  flex: 0 0 520px;
+  flex: 0 0 var(--sidebar-width, 520px);
   min-width: 0;
+}
+
+.sidebar-splitter {
+  position: relative;
+  z-index: 500;
+  display: flex;
+  flex: 0 0 12px;
+  align-items: center;
+  justify-content: center;
+  margin: 0 -6px;
+  cursor: col-resize;
+  touch-action: none;
+  user-select: none;
+}
+
+.sidebar-splitter span {
+  width: 3px;
+  height: 48px;
+  border-radius: 999px;
+  background: #475569;
+  transition:
+    background 140ms ease,
+    height 140ms ease;
+}
+
+.sidebar-splitter:hover span,
+.sidebar-splitter:focus-visible span {
+  height: 64px;
+  background: #60a5fa;
+}
+
+.sidebar-splitter:focus-visible {
+  outline: 2px solid #60a5fa;
+  outline-offset: -2px;
+}
+
+.map-pane {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
 }
 
 .project-filters {
@@ -369,7 +411,11 @@
     border-bottom: 1px solid #1f2937;
   }
 
-  .app-shell > div:last-child {
+  .sidebar-splitter {
+    display: none;
+  }
+
+  .map-pane {
     flex: 1 0 38dvh;
     min-height: 320px;
   }

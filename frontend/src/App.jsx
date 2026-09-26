@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { CircleMarker, MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import { createClient } from "@supabase/supabase-js";
 import "leaflet/dist/leaflet.css";
@@ -57,6 +57,19 @@ function MapFocusController({ latitude, longitude }) {
   return null;
 }
 
+function MapResizeObserver() {
+  const map = useMap();
+
+  useEffect(() => {
+    const container = map.getContainer();
+    const observer = new ResizeObserver(() => map.invalidateSize({ pan: false, debounceMoveend: true }));
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [map]);
+
+  return null;
+}
+
 function FlagPill({ children, tone }) {
   return (
     <div
@@ -100,6 +113,58 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({ utility: "", year: "", state: "", title: "", newOnly: false });
   const [focusedProjectId, setFocusedProjectId] = useState(null);
+  const [sidebarWidth, setSidebarWidth] = useState(520);
+  const resizingRef = useRef(false);
+
+  const clampSidebarWidth = (width) => {
+    const minimum = 300;
+    const maximum = Math.max(minimum, Math.min(window.innerWidth * 0.65, window.innerWidth - 260));
+    return Math.min(Math.max(width, minimum), maximum);
+  };
+
+  const handleSplitterPointerDown = (event) => {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    resizingRef.current = true;
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const handleSplitterPointerMove = (event) => {
+    if (resizingRef.current) setSidebarWidth(clampSidebarWidth(event.clientX));
+  };
+
+  const stopSplitterResize = () => {
+    resizingRef.current = false;
+  };
+
+  const handleSplitterKeyDown = (event) => {
+    const step = event.shiftKey ? 50 : 20;
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      setSidebarWidth((width) => clampSidebarWidth(width - step));
+    } else if (event.key === "ArrowRight") {
+      event.preventDefault();
+      setSidebarWidth((width) => clampSidebarWidth(width + step));
+    } else if (event.key === "Home") {
+      event.preventDefault();
+      setSidebarWidth(clampSidebarWidth(300));
+    } else if (event.key === "End") {
+      event.preventDefault();
+      setSidebarWidth(clampSidebarWidth(window.innerWidth * 0.65));
+    }
+  };
+
+  useEffect(() => {
+    const keepSidebarInBounds = () => {
+      if (window.innerWidth <= 760) return;
+      const maximum = Math.max(300, Math.min(window.innerWidth * 0.65, window.innerWidth - 260));
+      setSidebarWidth((width) => Math.min(Math.max(width, 300), maximum));
+    };
+
+    keepSidebarInBounds();
+    window.addEventListener("resize", keepSidebarInBounds);
+    return () => window.removeEventListener("resize", keepSidebarInBounds);
+  }, []);
 
   useEffect(() => {
     async function fetchProjects() {
@@ -178,11 +243,7 @@ export default function App() {
     <div
       className="app-shell"
       style={{
-        height: "100vh",
-        width: "100vw",
-        left: 0,
-
-        display: "flex",
+        "--sidebar-width": `${sidebarWidth}px`,
         fontFamily: "sans-serif",
         background: "#0f172a",
         color: "#fff",
@@ -192,7 +253,6 @@ export default function App() {
       <aside
         className="app-sidebar"
         style={{
-          width: "520px",
           padding: "20px",
           background: "#111827",
           overflowY: "auto",
@@ -422,13 +482,33 @@ export default function App() {
         </div>
       </aside>
 
+      <div
+        className="sidebar-splitter"
+        role="separator"
+        aria-label="Resize project panel"
+        aria-orientation="vertical"
+        aria-valuemin={300}
+        aria-valuemax={Math.floor(Math.max(300, Math.min(window.innerWidth * 0.65, window.innerWidth - 260)))}
+        aria-valuenow={Math.round(sidebarWidth)}
+        tabIndex={0}
+        onKeyDown={handleSplitterKeyDown}
+        onPointerDown={handleSplitterPointerDown}
+        onPointerMove={handleSplitterPointerMove}
+        onPointerUp={stopSplitterResize}
+        onPointerCancel={stopSplitterResize}
+        onLostPointerCapture={stopSplitterResize}
+      >
+        <span aria-hidden="true" />
+      </div>
+
       {/* Map View */}
-      <div style={{ flex: 1, height: "100%" }}>
+      <div className="map-pane">
         <MapContainer center={[32.74, -79.93]} zoom={6} style={{ height: "100%", width: "100%" }}>
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution="&copy; OpenStreetMap contributors"
           />
+          <MapResizeObserver />
           <MapFocusController latitude={focusedCoordinates?.[0]} longitude={focusedCoordinates?.[1]} />
           {mappableProjects.map(({ project, coordinates }) => (
             <React.Fragment key={project.id}>
