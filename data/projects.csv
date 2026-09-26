@@ -1,0 +1,59 @@
+id,name,utility,type,status,lat,lon,capacity_mw,voltage_kv,length_miles,start_date,end_date,owner
+DESC001,DESC Transmission Line 001,DESC,Transmission Line,Planned,32.21366,-81.32819,25.0,230,4.7,2029-05-23,2030-06-18,Dominion Energy South Carolina
+DESC002,DESC Transmission Line 002,DESC,Transmission Line,Planned,32.75163,-82.00028,100.0,500,36.6,2027-12-29,2029-09-01,Dominion Energy South Carolina
+DESC003,DESC Substation 003,DESC,Substation,Under Construction,32.59748,-82.1149,,230,,2028-03-22,2029-03-20,Dominion Energy South Carolina
+DESC004,DESC Substation 004,DESC,Substation,Under Construction,34.66036,-82.64727,,115,,2029-01-26,2030-12-01,Dominion Energy South Carolina
+DESC005,DESC Substation 005,DESC,Substation,Under Construction,33.00093,-82.73595,,115,,2031-09-15,2033-03-22,Dominion Energy South Carolina
+DESC006,DESC Transmission Line 006,DESC,Transmission Line,Under Construction,33.33672,-82.32186,500.0,115,19.2,2029-01-12,2030-05-24,Dominion Energy South Carolina
+DESC007,DESC Substation 007,DESC,Substation,Under Construction,32.98834,-81.62224,,230,,2027-11-10,2029-10-06,Dominion Energy South Carolina
+DESC008,DESC Substation Upgrade 008,DESC,Substation Upgrade,Under Construction,34.53799,-82.76692,100.0,230,,2030-04-04,2031-11-20,Dominion Energy South Carolina
+DESC009,DESC Substation 009,DESC,Substation,Under Construction,33.83952,-82.57807,,230,,2025-02-17,2027-01-22,Dominion Energy South Carolina
+DESC010,DESC Substation 010,DESC,Substation,Permitting,33.46817,-81.52921,,115,,2026-09-29,2027-12-29,Dominion Energy South Carolina
+DESC011,DESC Substation 011,DESC,Substation,Under Construction,33.65927,-82.63571,,230,,2029-11-22,2030-12-22,Dominion Energy South Carolina
+DESC012,DESC Substation Upgrade 012,DESC,Substation Upgrade,Under Construction,32.36711,-82.45904,150.0,230,,2026-07-21,2028-01-25,Dominion Energy South Carolina
+DESC013,DESC Substation 013,DESC,Substation,Under Construction,32.90839,-82.47899,,115,,2027-09-29,2028-09-12,Dominion Energy South Carolina
+DESC014,DESC Substation Upgrade 014,DESC,Substation Upgrade,Under Construction,34.43069,-82.09753,230.0,230,,2026-10-09,2028-08-07,Dominion Energy South Carolina
+DESC015,DESC Transmission Line 015,DESC,Transmission Line,Planned,34.45301,-82.55638,230.0,500,32.3,2025-02-19,2026-10-30,Dominion Energy South Carolina
+DESC016,DESC Substation Upgrade 016,DESC,Substation Upgrade,Under Construction,34.00828,-82.84685,500.0,230,,2031-11-29,2033-01-15,Dominion Energy South Carolina
+DESC017,DESC Substation 017,DESC,Substation,Under Construction,34.64202,-81.42928,,230,,2030-01-18,2031-03-21,Dominion Energy South Carolina
+DESC018,DESC Substation Upgrade 018,DESC,Substation Upgrade,Permitting,33.17672,-82.08847,25.0,230,,2030-01-08,2031-02-22,Dominion Energy South Carolina
+DESC019,DESC Transmission Line 019,DESC,Transmission Line,Under Construction,32.35881,-82.64697,500.0,230,31.7,2025-06-11,2026-01-22,Dominion Energy South Carolina
+DESC020,DESC Substation 020,DESC,Substation,Permitting,34.39953,-83.11918,,230,,2031-03-29,2032-06-16,Dominion Energy South Carolina
+DESC021,DESC Substation 021,DESC,Substation,Permitting,32.47348,-81.09592,,500,,2027-10-04,2028-09-09,Dominion Energy South Carolina
+DESC022,DESC Substation Upgrade 022,DESC,Substation Upgrade,Permitting,34.36697,-82.79614,25.0,230,,2030-08-09,2032-04-16,Dominion Energy South Carolina
+DESC023,DESC Substation 023,DESC,Substation,Planned,32.09948,-82.52432,,500,,2028-10-04,2030-09-03,Dominion Energy South Carolina
+DESC024,DESC Substation 024,DESC,Substation,Planned,33.78255,-80.80169,,230,,2031-10-25,2032-10-15,Dominion Energy South Carolina
+DESC025,DESC Transmission Line 025,DESC,Transmission Line,Planned,32.8378,-83.10645,50.0,230,37.2,2029-04-22,2029-12-27,Dominion Energy South Carolina
+GPC001,GPC Substation Upgrade 001,GPC,Substation Upgrade,Planned,33.28409,-81.34854,500.0,230,,2030-11-11,2032-09-16,Georgia Power
+GPC002,GPC Transmission Line 002,GPC,Transmission Line,Planned,32.33777,-81.01429,500.0,230,21.8,2028-12-11,2029-07-12,Georgia Power
+GPC003,GPC Transmission Line 003,GPC,Transmission Line,Under Construction,33.49798,-82.43909,50.0,115,38.4,2029-07-17,2031-02-27,Georgia Power
+GPC004,GPC Transmission Line 004,GPC,Transmission Line,Planned,34.73855,-82.70349,150.0,230,12.5,2031-02-08,2032-04-23,Georgia Power
+GPC005,GPC Substation 005,GPC,Substation,Under Construction,33.40506,-80.98575,,230,,2025-01-19,2026-03-22,Georgia Power
+GPC006,GPC Substation 006,GPC,Substation,Under Construction,33.43295,-82.61875,,500,,2025-08-27,2026-06-05,Georgia Power
+GPC007,GPC Substation Upgrade 007,GPC,Substation Upgrade,Planned,33.99374,-81.62452,25.0,230,,2031-10-24,2032-05-07,Georgia Power
+GPC008,GPC Substation Upgrade 008,GPC,Substation Upgrade,Under Construction,32.73534,-81.73781,50.0,500,,2028-05-15,2029-05-20,Georgia Power
+GPC009,GPC Transmission Line 009,GPC,Transmission Line,Planned,32.51771,-81.25514,50.0,230,19.6,2030-03-07,2031-03-20,Georgia Power
+GPC010,GPC Substation Upgrade 010,GPC,Substation Upgrade,Under Construction,33.24547,-82.94869,500.0,500,,2029-11-25,2031-07-03,Georgia Power
+GPC011,GPC Substation 011,GPC,Substation,Planned,32.8507,-82.04578,,115,,2026-12-21,2028-09-04,Georgia Power
+GPC012,GPC Transmission Line 012,GPC,Transmission Line,Planned,34.49854,-81.19488,50.0,230,9.7,2029-09-10,2030-10-21,Georgia Power
+GPC013,GPC Transmission Line 013,GPC,Transmission Line,Under Construction,32.81511,-81.88665,25.0,500,24.3,2026-12-25,2027-12-18,Georgia Power
+GPC014,GPC Substation 014,GPC,Substation,Planned,33.63182,-81.69266,,230,,2025-09-12,2026-04-08,Georgia Power
+GPC015,GPC Transmission Line 015,GPC,Transmission Line,Under Construction,33.69362,-81.84887,500.0,230,38.8,2025-10-20,2027-06-16,Georgia Power
+GPC016,GPC Substation 016,GPC,Substation,Planned,33.13475,-82.81592,,230,,2031-02-05,2032-08-02,Georgia Power
+GPC017,GPC Transmission Line 017,GPC,Transmission Line,Under Construction,34.34245,-82.20724,100.0,500,6.0,2028-08-07,2029-08-17,Georgia Power
+GPC018,GPC Transmission Line 018,GPC,Transmission Line,Planned,32.41783,-82.81312,230.0,115,21.3,2030-03-01,2032-01-26,Georgia Power
+GPC019,GPC Substation Upgrade 019,GPC,Substation Upgrade,Planned,32.33216,-82.68451,100.0,115,,2025-08-23,2026-07-19,Georgia Power
+GPC020,GPC Substation Upgrade 020,GPC,Substation Upgrade,Permitting,32.66217,-83.17051,150.0,230,,2030-08-11,2031-09-21,Georgia Power
+GPC021,GPC Transmission Line 021,GPC,Transmission Line,Permitting,33.21677,-81.1111,25.0,230,7.2,2031-03-13,2031-12-05,Georgia Power
+GPC022,GPC Substation Upgrade 022,GPC,Substation Upgrade,Planned,33.32087,-82.38465,25.0,500,,2025-11-07,2027-06-02,Georgia Power
+GPC023,GPC Transmission Line 023,GPC,Transmission Line,Under Construction,32.54817,-82.05609,230.0,115,6.3,2025-06-24,2026-02-26,Georgia Power
+GPC024,GPC Transmission Line 024,GPC,Transmission Line,Planned,33.80658,-82.75431,150.0,500,2.3,2028-04-26,2029-07-05,Georgia Power
+GPC025,GPC Substation 025,GPC,Substation,Planned,33.88751,-82.80229,,115,,2030-11-08,2032-05-19,Georgia Power
+DESC026,DESC Substation Upgrade 026,DESC,Substation Upgrade,Permitting,33.56701,-82.07455,100.0,500,,2026-06-15,2027-07-20,Dominion Energy South Carolina
+GPC026,GPC Transmission Line 026,GPC,Transmission Line,Permitting,33.58725,-82.04894,25.0,500,29.9,2026-06-15,2027-07-20,Georgia Power
+DESC027,DESC Transmission Line 027,DESC,Transmission Line,Under Construction,32.48329,-81.17622,50.0,500,32.4,2026-09-16,2027-10-21,Dominion Energy South Carolina
+GPC027,GPC Transmission Line 027,GPC,Transmission Line,Permitting,32.40026,-81.11421,500.0,230,35.4,2026-09-16,2027-10-21,Georgia Power
+DESC028,DESC Substation Upgrade 028,DESC,Substation Upgrade,Under Construction,34.09687,-81.56071,230.0,115,,2027-09-08,2028-10-12,Dominion Energy South Carolina
+GPC028,GPC Substation Upgrade 028,GPC,Substation Upgrade,Planned,34.00043,-81.55282,50.0,230,,2027-09-08,2028-10-12,Georgia Power
+DESC029,DESC Substation 029,DESC,Substation,Under Construction,33.0,-81.7,,500,,2025-01-01,2025-08-01,Dominion Energy South Carolina
+GPC029,GPC Substation Upgrade 029,GPC,Substation Upgrade,Planned,33.03,-81.68,50.0,500,,2029-01-01,2029-08-01,Georgia Power
