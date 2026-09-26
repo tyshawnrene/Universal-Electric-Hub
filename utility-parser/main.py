@@ -1,8 +1,11 @@
 import os
 import time
+import re
+from datetime import datetime
 from pathlib import Path
 from dotenv import load_dotenv
 from google import genai
+from typing import Optional
 from google.genai import types
 from google.genai.errors import ServerError
 from pydantic import BaseModel, Field
@@ -14,19 +17,59 @@ load_dotenv(script_dir / ".env")
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 supabase: Client = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
 
-# 1. Define schema for an individual project
 class ProjectRecord(BaseModel):
     project_name: str = Field(description="Name of the transmission project or substation upgrade.")
     utility_company: str = Field(description="Name of the utility operating the project.")
-    state: str = Field(description="Two-letter state abbreviation where the project is located.")
-    latitude: float = Field(description="Approximate latitude coordinate for the project or nearest substation.")
-    longitude: float = Field(description="Approximate longitude coordinate for the project or nearest substation.")
-    in_service_date: str = Field(description="Planned in-service date (YYYY-MM-DD or formatted string).")
-    project_scope: str = Field(description="Detailed technical description of the project scope and need.")
+    state: str = Field(description="Two-letter state abbreviation.")
+    latitude: Optional[float] = Field(default=None, description="Latitude if available in text or maps.")
+    longitude: Optional[float] = Field(default=None, description="Longitude if available in text or maps.")
+    in_service_date: Optional[str] = Field(default=None, description="Planned in-service date.")
+    project_scope: str = Field(description="Detailed technical description of the project scope.")
 
-# 2. Wrap it in a container schema to extract ALL projects from the document
 class DocumentExtraction(BaseModel):
     projects: list[ProjectRecord] = Field(description="Complete list of all transmission and capital projects found in the document.")
+
+def standardize_date(date_str: Optional[str]) -> Optional[str]:
+    """
+    Cleans and standardizes messy utility date strings into a uniform YYYY-MM-DD format.
+    """
+    if not date_str:
+        return None
+    
+    date_str = date_str.strip()
+    
+    # Handle "Q4 2025" or similar quarter formats -> map to end of quarter
+    quarter_match = re.search(r'Q([1-4])\s*(\d{4})', date_str, re.IGNORECASE)
+    if quarter_match:
+        q, year = quarter_match.groups()
+        mapping = {'1': f"{year}-03-31", '2': f"{year}-06-30", '3': f"{year}-09-30", '4': f"{year}-12-31"}
+        return mapping.get(q)
+    
+    # Handle Year-only like "2025" -> map to end of year
+    if re.fullmatch(r'\d{4}', date_str):
+        return f"{date_str}-12-31"
+
+    # Try standard Python parsing for regular dates (e.g., MM/DD/YYYY, Month DD YYYY)
+    for fmt in ('%Y-%m-%d', '%m/%d/%Y', '%B %d, %Y', '%b %d, %Y', '%Y/%m/%d'):
+        try:
+            return datetime.strptime(date_str, fmt).strftime('%Y-%m-%d')
+        except ValueError:
+            continue
+            
+    # Return original string if it can't be automatically parsed
+    return date_str
+
+def sanitize_table_name(company_name: str, file_name: str) -> str:
+    """
+    Takes an extracted utility company name or filename and converts it 
+    into a safe, standardized PostgreSQL table name (snake_case).
+    Example: 'Florida Power & Light' -> 'florida_power_light_projects'
+    """
+    base_string = company_name if company_name else file_name
+    base_string = re.sub(r'\.[^/.]+$', '', base_string)
+    clean = re.sub(r'[^a-zA-Z0-9\s]', '', base_string)
+    snake_case = re.sub(r'\s+', '_', clean.strip()).lower()
+    return f"{snake_case}_projects"
 
 def parse_pdf_file(file_path: Path):
     print(f"Uploading {file_path.name} to Gemini Files API...")
@@ -35,7 +78,14 @@ def parse_pdf_file(file_path: Path):
 
     prompt = """
     Extract EVERY SINGLE transmission project, line rebuild, and substation upgrade listed in this document. 
-    Do not skip any projects. For each project, extract the exact name, utility company, state, approximate latitude and longitude coordinates, planned in-service date, and detailed project scope.
+    Do not skip any projects. For each project, extract:
+    - project_name
+    - utility_company
+    - state
+    - latitude and longitude (If exact coordinates are not in the text, look for named substations, 
+      towns, or endpoints so we can estimate location, otherwise leave null).
+    - in_service_date
+    - project_scope
     """
 
     max_retries = 5
@@ -45,7 +95,7 @@ def parse_pdf_file(file_path: Path):
         try:
             print(f"Running Gemini extraction analysis (Attempt {attempt + 1}/{max_retries})...")
             response = client.models.generate_content(
-                model="gemini-3.5-flash-lite",  # Using a stable production model with separate quota limits
+                model="gemini-3.5-flash-lite",
                 contents=[uploaded_file, prompt],
                 config=types.GenerateContentConfig(
                     response_mime_type="application/json",
@@ -62,10 +112,8 @@ def parse_pdf_file(file_path: Path):
             else:
                 raise e
 
-    # Cleanup remote file
     client.files.delete(name=uploaded_file.name)
     print("Cleanup complete.")
-
     return response.parsed
 
 def process_single_pdf(file_path: Path):
@@ -77,17 +125,25 @@ def process_single_pdf(file_path: Path):
 
     print(f"\n--- Extracted {len(extracted_data.projects)} Projects ---")
     
-    # Loop through every extracted project and push to Supabase individually
     for proj in extracted_data.projects:
+        # Standardize the date format cleanly
+        proj.in_service_date = standardize_date(proj.in_service_date)
+        
         project_dict = proj.model_dump()
+        target_table = sanitize_table_name(proj.utility_company, file_path.name)
         
         try:
-            res = supabase.table("projects").insert(project_dict).execute()
-            print(f"Pushed to Supabase: {proj.project_name}")
+            res = supabase.table(target_table).insert(project_dict).execute()
+            print(f"Pushed to Supabase table [{target_table}]: {proj.project_name}")
         except Exception as e:
-            print(f"Failed to push project '{proj.project_name}': {e}")
+            # Fallback to the master 'projects' table
+            fallback_table = "projects"
+            try:
+                fallback_res = supabase.table(fallback_table).insert(project_dict).execute()
+                print(f"Pushed to unified master table [{fallback_table}]: {proj.project_name}")
+            except Exception as inner_e:
+                print(f"Failed to push project '{proj.project_name}' to master table: {inner_e}")
 
-    # Move processed file
     processed_dir = script_dir / "processed"
     processed_dir.mkdir(exist_ok=True)
     file_path.rename(processed_dir / file_path.name)
