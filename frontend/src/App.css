@@ -42,8 +42,7 @@
     z-index: 1;
     top: 34px;
     height: 28px;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg)
-      scale(1.4);
+    transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg) scale(1.4);
   }
 
   .vite {
@@ -51,8 +50,7 @@
     top: 107px;
     height: 26px;
     width: auto;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg)
-      scale(0.8);
+    transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg) scale(0.8);
   }
 }
 
@@ -167,7 +165,7 @@
 
   &::before,
   &::after {
-    content: '';
+    content: "";
     position: absolute;
     top: -4.5px;
     border: 5px solid transparent;
@@ -180,5 +178,251 @@
   &::after {
     right: 0;
     border-right-color: var(--border);
+  }
+}
+
+/* GridSync dashboard and project filters */
+#root {
+  width: 100%;
+  max-width: none;
+  min-height: 100vh;
+  border: 0;
+  text-align: left;
+}
+
+.app-shell {
+  height: 100vh;
+  height: 100dvh;
+  width: 100vw;
+  display: flex;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.app-sidebar {
+  flex: 0 0 var(--sidebar-width, 520px);
+  min-width: 0;
+}
+
+.sidebar-splitter {
+  position: relative;
+  z-index: 500;
+  display: flex;
+  flex: 0 0 12px;
+  align-items: center;
+  justify-content: center;
+  margin: 0 -6px;
+  cursor: col-resize;
+  touch-action: none;
+  user-select: none;
+}
+
+.sidebar-splitter span {
+  width: 3px;
+  height: 48px;
+  border-radius: 999px;
+  background: #475569;
+  transition:
+    background 140ms ease,
+    height 140ms ease;
+}
+
+.sidebar-splitter:hover span,
+.sidebar-splitter:focus-visible span {
+  height: 64px;
+  background: #60a5fa;
+}
+
+.sidebar-splitter:focus-visible {
+  outline: 2px solid #60a5fa;
+  outline-offset: -2px;
+}
+
+.map-pane {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
+}
+
+.project-filters {
+  margin: 8px 0 14px;
+  padding: 12px;
+  border: 1px solid #273449;
+  border-radius: 10px;
+  background: #0f172a;
+}
+
+.filter-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.filter-count {
+  color: #cbd5e1;
+  font-size: 0.78rem;
+}
+
+.clear-filters {
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: #93c5fd;
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.clear-filters:hover {
+  color: #bfdbfe;
+  text-decoration: underline;
+}
+
+.clear-selection-button {
+  width: 100%;
+  min-height: 38px;
+  margin: 0 0 14px;
+  padding: 8px 12px;
+  border: 1px solid #475569;
+  border-radius: 7px;
+  background: #1e293b;
+  color: #e2e8f0;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease;
+}
+
+.clear-selection-button:not(:disabled):hover {
+  border-color: #60a5fa;
+  background: #24354d;
+  color: #fff;
+}
+
+.clear-selection-button:focus-visible {
+  outline: 2px solid #60a5fa;
+  outline-offset: 2px;
+}
+
+.clear-selection-button:disabled {
+  color: #64748b;
+  cursor: not-allowed;
+}
+
+.ppl-go-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed !important;
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.filter-field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+  color: #cbd5e1;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.filter-field input,
+.filter-field select {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 10px;
+  border: 1px solid #475569;
+  border-radius: 6px;
+  background: #1e293b;
+  color: #f8fafc;
+  font: inherit;
+  font-size: 0.82rem;
+}
+
+.filter-field input::placeholder {
+  color: #94a3b8;
+}
+
+.filter-field input:focus-visible,
+.filter-field select:focus-visible,
+.clear-filters:focus-visible {
+  outline: 2px solid #60a5fa;
+  outline-offset: 2px;
+}
+
+.new-project-filter {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: fit-content;
+  margin-top: 12px;
+  color: #e2e8f0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.new-project-filter input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: #1d84f5;
+  cursor: pointer;
+}
+
+.new-project-filter input:focus-visible {
+  outline: 2px solid #60a5fa;
+  outline-offset: 3px;
+}
+
+.empty-projects {
+  padding: 20px 12px;
+  border: 1px dashed #475569;
+  border-radius: 8px;
+  color: #cbd5e1;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+@media (max-width: 760px) {
+  .app-shell {
+    flex-direction: column;
+    overflow: auto;
+  }
+
+  .app-sidebar {
+    flex: 0 0 auto;
+    width: 100% !important;
+    max-height: 62dvh;
+    padding: 16px !important;
+    border-right: 0 !important;
+    border-bottom: 1px solid #1f2937;
+  }
+
+  .sidebar-splitter {
+    display: none;
+  }
+
+  .map-pane {
+    flex: 1 0 38dvh;
+    min-height: 320px;
+  }
+}
+
+@media (max-width: 420px) {
+  .filter-grid {
+    grid-template-columns: 1fr;
   }
 }
