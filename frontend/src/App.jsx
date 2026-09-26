@@ -33,6 +33,18 @@ function getProjectCoordinates(project) {
   return [latitude, longitude];
 }
 
+function isNewProject(project, now = new Date()) {
+  if (!project?.in_service_date) return false;
+
+  const serviceDate = new Date(project.in_service_date);
+  if (Number.isNaN(serviceDate.getTime())) return false;
+
+  return (
+    serviceDate.getFullYear() > now.getFullYear() ||
+    (serviceDate.getFullYear() === now.getFullYear() && serviceDate.getMonth() > now.getMonth())
+  );
+}
+
 function MapFocusController({ latitude, longitude }) {
   const map = useMap();
 
@@ -86,7 +98,7 @@ export default function App() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [filters, setFilters] = useState({ utility: "", year: "", state: "", title: "" });
+  const [filters, setFilters] = useState({ utility: "", year: "", state: "", title: "", newOnly: false });
   const [focusedProjectId, setFocusedProjectId] = useState(null);
 
   useEffect(() => {
@@ -120,6 +132,7 @@ export default function App() {
       (!filters.utility || project.utility_company === filters.utility) &&
       (!filters.year || getProjectYear(project) === filters.year) &&
       (!filters.state || project.state === filters.state) &&
+      (!filters.newOnly || isNewProject(project)) &&
       (!filters.title || title.includes(filters.title.trim().toLocaleLowerCase()))
     );
   });
@@ -244,7 +257,7 @@ export default function App() {
               <button
                 type="button"
                 className="clear-filters"
-                onClick={() => setFilters({ utility: "", year: "", state: "", title: "" })}
+                onClick={() => setFilters({ utility: "", year: "", state: "", title: "", newOnly: false })}
               >
                 Clear filters
               </button>
@@ -294,6 +307,14 @@ export default function App() {
               </select>
             </label>
           </div>
+          <label className="new-project-filter">
+            <input
+              type="checkbox"
+              checked={filters.newOnly}
+              onChange={(event) => updateFilter("newOnly", event.target.checked)}
+            />
+            <span>New projects only</span>
+          </label>
         </section>
 
         <button
@@ -355,6 +376,7 @@ export default function App() {
                             <FlagPill tone={ACCENT_GREEN}>{new Date(p.in_service_date).getFullYear()}</FlagPill>
                           )}
                           {p.state && <FlagPill tone={ACCENT_PURPLE}>{p.state}</FlagPill>}
+                          {isNewProject(p) && <FlagPill tone={ACCENT_BLUE}>New</FlagPill>}
                         </div>
                         <p
                           className="ppl-project-meta"

@@ -320,6 +320,31 @@
   outline-offset: 2px;
 }
 
+.new-project-filter {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: fit-content;
+  margin-top: 12px;
+  color: #e2e8f0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.new-project-filter input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: #1d84f5;
+  cursor: pointer;
+}
+
+.new-project-filter input:focus-visible {
+  outline: 2px solid #60a5fa;
+  outline-offset: 3px;
+}
+
 .empty-projects {
   padding: 20px 12px;
   border: 1px dashed #475569;
