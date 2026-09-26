@@ -35,5 +35,13 @@ def list_projects(state: str | None = None, utility: str | None = None) -> tuple
     return to_projects(pd.DataFrame(rows))
 
 
+def get_projects_by_ids(ids: list[int]) -> list[Project]:
+    rows = get_supabase().table(TABLE).select("*").in_("id", ids).execute().data
+    if not rows:
+        return []
+    projects, _ = to_projects(pd.DataFrame(rows))
+    return projects
+
+
 def insert_projects(projects: list[Project]) -> list[dict]:
     return get_supabase().table(TABLE).insert([to_row(p) for p in projects]).execute().data

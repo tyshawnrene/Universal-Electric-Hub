@@ -1,8 +1,9 @@
 import pandas as pd
-from flask import Blueprint, abort, jsonify, request
+from flask import Blueprint, abort, current_app, jsonify, request
 
+from services.ai_report import generate_report
 from services.parser import to_projects
-from services.project_repo import list_projects
+from services.project_repo import get_projects_by_ids, list_projects
 from services.proximity import find_overlaps
 
 analysis_bp = Blueprint("analysis", __name__)
@@ -39,3 +40,24 @@ def overlaps():
     max_km = float(body.get("max_km", 40.0))
     results = find_overlaps(projects, max_km)
     return jsonify(count=len(results), overlaps=results, errors=errors)
+
+
+@analysis_bp.post("/report")
+def report():
+    """AI coordination report for selected projects. Body: {"project_ids": [1, 2, ...]}"""
+    body = request.get_json(silent=True) or {}
+    ids = body.get("project_ids")
+    if not isinstance(ids, list) or len(ids) < 2:
+        abort(400, description='Body must include a "project_ids" list with at least 2 ids.')
+
+    projects = get_projects_by_ids(ids)
+    if len(projects) < 2:
+        abort(404, description="Fewer than 2 of the requested projects were found.")
+
+    overlaps = find_overlaps(projects, max_km=float("inf"))
+    try:
+        report = generate_report(projects, overlaps)
+    except Exception as e:
+        current_app.logger.exception("Gemini report failed")
+        abort(502, description=f"AI report generation failed: {e}")
+    return jsonify(report=report, overlaps=overlaps)
