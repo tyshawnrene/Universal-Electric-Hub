@@ -1,4 +1,43 @@
-.env
+# --- Python & Virtual Environments ---
+venv/
 .venv/
-.supabase/
 __pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# --- Environment & Secrets ---
+.env
+.env.local
+utility-parser/.env
+
+# --- Node.js & Frontend ---
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+.npm
+.eslintcache
+
+# --- Local Data & Processed PDFs ---
+utility-parser/processed/
+*.pdf
+.DS_Store
+Thumbs.db
