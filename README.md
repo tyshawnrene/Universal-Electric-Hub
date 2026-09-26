@@ -1,3 +1,33 @@
+#Quickstart
+
+Create a .env inside the utility-parser directory with these variables. Generate your own API key for gemini at google studio .
+
+```bash 
+SUPABASE_URL=https://onangbqkfzalvqgrvibm.supabase.co
+SUPABASE_KEY=sb_publishable_j49MZiU08odkg9arKsdLlw_Aa8zvHRK
+GEMINI_API_KEY=your_api_key
+```
+
+In the ROOT directory, run these commands
+
+# Create and activate virtual environment
+python3 -m venv venv
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Start the FastAPI backend server
+cd utility-parser
+uvicorn api:app --reload --port 8000
+
+# Open a NEW terminal and run the following
+
+cd frontend
+npm install
+npm run dev
+
+
 # Gridlock — Cross-Utility Coordination Finder
 
 Compares planned/under-construction projects from two neighboring
