@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { CircleMarker, MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
+import { CircleMarker, MapContainer, Popup, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
@@ -534,16 +534,26 @@ export default function App() {
                   interactive={false}
                 />
               )}
-              <Marker position={coordinates}>
-                <Popup>
-                  <div style={{ maxWidth: "220px" }}>
-                    <strong>{project.name}</strong>
-                    <br />
-                    <p style={{ margin: "5px 0", fontSize: "0.85rem" }}>{project.scope}</p>
-                    <em style={{ fontSize: "0.75rem" }}>Utility: {project.utility}</em>
-                  </div>
-                </Popup>
-              </Marker>
+              
+<CircleMarker
+  center={coordinates}
+  radius={project.id === focusedProjectId ? 10 : 7}
+  pathOptions={{
+    color: "#2563eb",
+    weight: 2,
+    fillColor: "#3b82f6",
+    fillOpacity: 0.8,
+  }}
+>
+  <Popup>
+    <div style={{ maxWidth: "220px" }}>
+      <strong>{project.project_name}</strong>
+      <br />
+      <p style={{ margin: "5px 0", fontSize: "0.85rem" }}>{project.project_scope}</p>
+      <em style={{ fontSize: "0.75rem" }}>Utility: {project.utility_company}</em>
+    </div>
+  </Popup>
+</CircleMarker>
             </React.Fragment>
           ))}
         </MapContainer>
