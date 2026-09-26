@@ -214,6 +214,7 @@ export default function App() {
   const [focusedProjectId, setFocusedProjectId] = useState(null);
   const [displayMode, setDisplayMode] = useState("overlaps");
   const [pairMatchMode, setPairMatchMode] = useState("and");
+  const [overlapCategory, setOverlapCategory] = useState("all");
   const [overlaps, setOverlaps] = useState([]);
   const [overlapsLoading, setOverlapsLoading] = useState(true);
   const [overlapsError, setOverlapsError] = useState(null);
@@ -339,6 +340,21 @@ export default function App() {
   const filteredProjects = projects.filter(matchesProjectFilters);
   const projectsById = new Map(projects.map((project) => [String(project.id), project]));
   const filteredProjectIds = new Set(filteredProjects.map((project) => String(project.id)));
+  const matchesOverlapCategory = (pair, projectA, projectB) => {
+    const coordinatesA = getProjectCoordinates(projectA);
+    const coordinatesB = getProjectCoordinates(projectB);
+    const sameLocation =
+      coordinatesA && coordinatesB && coordinatesA[0] === coordinatesB[0] && coordinatesA[1] === coordinatesB[1];
+    const distance = Number(pair.distance_km);
+
+    if (overlapCategory === "exact") return sameLocation;
+    if (overlapCategory === "under_1.6km") return !sameLocation && pair.tier === "under_1.6km";
+    if (overlapCategory === "1.6_to_8km") return pair.tier === "under_8km";
+    if (overlapCategory === "8_to_40km") {
+      return pair.tier === "under_40km" || (pair.tier == null && Number.isFinite(distance) && distance === 40);
+    }
+    return true;
+  };
   const visibleOverlapPairs = overlaps.flatMap((pair, index) => {
     const projectA = projectsById.get(String(pair.project_a?.id));
     const projectB = projectsById.get(String(pair.project_b?.id));
@@ -347,7 +363,7 @@ export default function App() {
     const matchesA = filteredProjectIds.has(String(projectA.id));
     const matchesB = filteredProjectIds.has(String(projectB.id));
     const pairMatches = pairMatchMode === "and" ? matchesA && matchesB : matchesA || matchesB;
-    if (!pairMatches) return [];
+    if (!pairMatches || !matchesOverlapCategory(pair, projectA, projectB)) return [];
 
     return [{ ...pair, projectA, projectB, key: `${projectA.id}-${projectB.id}-${index}` }];
   });
@@ -395,7 +411,8 @@ export default function App() {
     });
   const focusedProject = mappableProjects.find(({ project }) => project.id === focusedProjectId)?.project ?? null;
   const focusedCoordinates = getProjectCoordinates(focusedProject);
-  const hasActiveFilters = Object.values(filters).some(Boolean);
+  const hasActiveFilters =
+    Object.values(filters).some(Boolean) || (displayMode === "overlaps" && overlapCategory !== "all");
   const updateFilter = (name, value) => setFilters((current) => ({ ...current, [name]: value }));
 
   const handleRunAgent = async () => {
@@ -506,7 +523,10 @@ export default function App() {
               <button
                 type="button"
                 className="clear-filters"
-                onClick={() => setFilters({ utility: "", year: "", state: "", title: "", newOnly: false })}
+                onClick={() => {
+                  setFilters({ utility: "", year: "", state: "", title: "", newOnly: false });
+                  setOverlapCategory("all");
+                }}
               >
                 Clear filters
               </button>
@@ -570,6 +590,18 @@ export default function App() {
               <select value={pairMatchMode} onChange={(event) => setPairMatchMode(event.target.value)}>
                 <option value="and">Both projects match (AND)</option>
                 <option value="or">Either project matches (OR)</option>
+              </select>
+            </label>
+          )}
+          {displayMode === "overlaps" && (
+            <label className="filter-field pair-match-field">
+              <span>Overlap distance category</span>
+              <select value={overlapCategory} onChange={(event) => setOverlapCategory(event.target.value)}>
+                <option value="all">All categories</option>
+                <option value="exact">Exact location</option>
+                <option value="under_1.6km">Under 1.6 km</option>
+                <option value="1.6_to_8km">1.6 to under 8 km</option>
+                <option value="8_to_40km">8 to 40 km</option>
               </select>
             </label>
           )}
