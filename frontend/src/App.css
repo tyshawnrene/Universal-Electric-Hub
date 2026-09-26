@@ -273,6 +273,11 @@
   cursor: not-allowed;
 }
 
+.ppl-go-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed !important;
+}
+
 .filter-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -313,6 +318,31 @@
 .clear-filters:focus-visible {
   outline: 2px solid #60a5fa;
   outline-offset: 2px;
+}
+
+.new-project-filter {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: fit-content;
+  margin-top: 12px;
+  color: #e2e8f0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.new-project-filter input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: #1d84f5;
+  cursor: pointer;
+}
+
+.new-project-filter input:focus-visible {
+  outline: 2px solid #60a5fa;
+  outline-offset: 3px;
 }
 
 .empty-projects {
