@@ -8,7 +8,8 @@ from pathlib import Path
 
 # Load environment variables
 script_dir = Path(__file__).resolve().parent
-load_dotenv(script_dir / ".env")
+# Look one level up for the .env file in the root directory
+load_dotenv(script_dir.parent / ".env")
 
 from .agent import run_targeted_analysis
 
