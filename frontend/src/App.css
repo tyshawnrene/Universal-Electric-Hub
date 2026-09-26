@@ -396,11 +396,9 @@
 }
 
 .overlap-project-card .ppl-project-name {
-  display: block;
   width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .overlap-project-scope {

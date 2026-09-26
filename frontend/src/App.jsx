@@ -247,9 +247,9 @@ export default function App() {
   const [focusedProjectId, setFocusedProjectId] = useState(null);
   const [focusedPairKey, setFocusedPairKey] = useState(null);
   const [displayMode, setDisplayMode] = useState("overlaps");
-  const [pairMatchMode, setPairMatchMode] = useState("and");
+  const [pairMatchMode, setPairMatchMode] = useState("or");
   const [overlapCategory, setOverlapCategory] = useState("all");
-  const [differentCompaniesOnly, setDifferentCompaniesOnly] = useState(false);
+  const [differentCompaniesOnly, setDifferentCompaniesOnly] = useState(true);
   const [overlaps, setOverlaps] = useState([]);
   const [overlapsLoading, setOverlapsLoading] = useState(true);
   const [overlapsError, setOverlapsError] = useState(null);
@@ -841,22 +841,15 @@ export default function App() {
               return Number(b.distance_km) - Number(a.distance_km);
             })
             .map((pair) => (
-              <React.Fragment key={`overlap-line-${pair.key}`}>
-                {pair.key === focusedPairKey && (
-                  <Polyline
-                    positions={[pair.coordinatesA, pair.coordinatesB]}
-                    pathOptions={{ color: "#ffffff", weight: 9, opacity: 0.95 }}
-                  />
-                )}
-                <Polyline
-                  positions={[pair.coordinatesA, pair.coordinatesB]}
-                  pathOptions={{
-                    color: pair.color,
-                    weight: pair.key === focusedPairKey ? 5 : 2,
-                    opacity: pair.key === focusedPairKey ? 1 : 0.9,
-                  }}
-                />
-              </React.Fragment>
+              <Polyline
+                key={`overlap-line-${pair.key}`}
+                positions={[pair.coordinatesA, pair.coordinatesB]}
+                pathOptions={{
+                  color: pair.color,
+                  weight: pair.key === focusedPairKey ? 7 : 2,
+                  opacity: pair.key === focusedPairKey ? 1 : 0.9,
+                }}
+              />
             ))}
           {mappableProjects.map(({ project, coordinates }) => (
             <React.Fragment key={project.id}>
