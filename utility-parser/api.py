@@ -2,12 +2,19 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import os
+from dotenv import load_dotenv
 from supabase import create_client
-from agent import run_targeted_analysis # Import your agent logic
+from pathlib import Path
+
+# Load environment variables
+script_dir = Path(__file__).resolve().parent
+load_dotenv(script_dir / ".env")
+
+from .agent import run_targeted_analysis
 
 app = FastAPI(title="GridSync FL API")
 
-# Enable CORS for your frontend development server
+# Enable CORS so your React frontend can communicate with FastAPI
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -23,8 +30,11 @@ class AnalysisRequest(BaseModel):
 
 @app.get("/api/projects")
 def get_projects():
-    response = supabase.table("projects").select("*").execute()
-    return response.data
+    try:
+        response = supabase.table("projects").select("*").execute()
+        return response.data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/analyze")
 def analyze_projects(payload: AnalysisRequest):
