@@ -302,6 +302,12 @@
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.75));
 }
 
+.colocated-flag-icon.is-focused {
+  z-index: 1000 !important;
+  font-size: 33px;
+  filter: drop-shadow(0 0 5px #fff) drop-shadow(0 0 9px #ef4444);
+}
+
 .colocated-project-list {
   margin: 6px 0 0;
   padding-left: 20px;
@@ -380,8 +386,93 @@
   background: #111827;
 }
 
+.overlap-pair.is-pair-selected {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.22);
+}
+
 .overlap-pair .ppl-project {
   background: #172235;
+}
+
+.overlap-project-card .ppl-project-name {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.overlap-project-scope {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.overlap-pair-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 2px 10px;
+  flex-wrap: wrap;
+}
+
+.overlap-pair-selection {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  color: #cbd5e1;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.overlap-pair-selection input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: #1d84f5;
+  cursor: pointer;
+}
+
+.overlap-pair-selection input:focus-visible {
+  outline: 2px solid #60a5fa;
+  outline-offset: 3px;
+}
+
+.overlap-pair-go {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: center;
+  margin: 0;
+  padding: 9px 13px !important;
+  border: 0;
+  border-radius: 9px;
+  background: #1d84f5;
+  color: #fff;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.overlap-pair-go:hover:not(:disabled) {
+  background: #3b9aff;
+}
+
+.overlap-pair-go:focus-visible {
+  outline: 2px solid #bfdbfe;
+  outline-offset: 2px;
+}
+
+.overlap-pair-go:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .pair-connector {

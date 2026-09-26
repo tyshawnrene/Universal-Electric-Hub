@@ -29,6 +29,12 @@ const COLOCATED_FLAG_ICON = L.divIcon({
   iconSize: [28, 30],
   iconAnchor: [14, 28],
 });
+const FOCUSED_COLOCATED_FLAG_ICON = L.divIcon({
+  className: "colocated-flag-icon is-focused",
+  html: '<span aria-hidden="true">🚩</span>',
+  iconSize: [36, 38],
+  iconAnchor: [18, 35],
+});
 
 // The backend sends dates as "YYYY-MM-DD". new Date() would read that as UTC midnight,
 // which is the previous day in US time zones, so build a local date instead.
@@ -70,14 +76,26 @@ function isNewProject(project, now = new Date()) {
   );
 }
 
-function MapFocusController({ latitude, longitude }) {
+function MapFocusController({ latitude, longitude, pairStart, pairEnd }) {
   const map = useMap();
+  const pairStartLat = pairStart?.[0];
+  const pairStartLng = pairStart?.[1];
+  const pairEndLat = pairEnd?.[0];
+  const pairEndLng = pairEnd?.[1];
 
   useEffect(() => {
-    if (latitude != null && longitude != null) {
+    if (pairStartLat != null && pairStartLng != null && pairEndLat != null && pairEndLng != null) {
+      const start = [pairStartLat, pairStartLng];
+      const end = [pairEndLat, pairEndLng];
+      if (pairStartLat === pairEndLat && pairStartLng === pairEndLng) {
+        map.flyTo(start, Math.max(map.getZoom(), 12), { duration: 0.8 });
+      } else {
+        map.fitBounds(L.latLngBounds(start, end), { padding: [72, 72], maxZoom: 10, duration: 0.8 });
+      }
+    } else if (latitude != null && longitude != null) {
       map.flyTo([latitude, longitude], Math.max(map.getZoom(), 9), { duration: 0.8 });
     }
-  }, [map, latitude, longitude]);
+  }, [map, latitude, longitude, pairStartLat, pairStartLng, pairEndLat, pairEndLng]);
 
   return null;
 }
@@ -131,12 +149,20 @@ function ArrowIcon() {
   );
 }
 
-function ProjectCard({ project, selected, onToggleSelect, onFocus }) {
+function ProjectCard({
+  project,
+  selected,
+  onToggleSelect,
+  onFocus,
+  showSelection = true,
+  showFocus = true,
+  compact = false,
+}) {
   const year = parseServiceDate(project)?.getFullYear();
 
   return (
     <article
-      className="ppl-project"
+      className={`ppl-project${compact ? " overlap-project-card" : ""}`}
       style={{
         transition: "border-left 0.1s ease",
         display: "flex",
@@ -149,13 +175,15 @@ function ProjectCard({ project, selected, onToggleSelect, onFocus }) {
         borderLeft: selected ? `5px solid ${ACCENT_BLUE}` : `1px solid ${ACCENT_BLUE}`,
       }}
     >
-      <input
-        type="checkbox"
-        checked={selected}
-        onChange={() => onToggleSelect(project.id)}
-        aria-label={`Select ${project.name}`}
-        style={{ marginTop: "4px", cursor: "pointer" }}
-      />
+      {showSelection && (
+        <input
+          type="checkbox"
+          checked={selected}
+          onChange={() => onToggleSelect(project.id)}
+          aria-label={`Select ${project.name}`}
+          style={{ marginTop: "4px", cursor: "pointer" }}
+        />
+      )}
       <div className="project-card-content">
         <h3
           className="ppl-project-name"
@@ -174,31 +202,35 @@ function ProjectCard({ project, selected, onToggleSelect, onFocus }) {
           {project.state && <FlagPill tone={ACCENT_PURPLE}>{project.state}</FlagPill>}
           {isNewProject(project) && <FlagPill tone={ACCENT_BLUE}>New</FlagPill>}
         </div>
-        <p className="ppl-project-meta" style={{ textAlign: "left", fontSize: "0.8rem", color: "#9ca3af" }}>
+        <p
+          className={`ppl-project-meta${compact ? " overlap-project-scope" : ""}`}
+          style={{ textAlign: "left", fontSize: "0.8rem", color: "#9ca3af" }}
+        >
           {project.scope}
         </p>
-        <button
-          type="button"
-          className="ppl-go-btn"
-          onClick={() => onFocus(project.id)}
-          disabled={!getProjectCoordinates(project)}
-          aria-label={`Show ${project.name} on map`}
-          style={{
-            width: "fit-content",
-            padding: "10px 15px",
-            background: ACCENT_BLUE,
-            color: "#fff",
-            border: "none",
-            borderRadius: "12px",
-            fontWeight: "bold",
-            cursor: "pointer",
-            marginTop: "10px",
-            fontSize: "0.8rem",
-          }}
-        >
-          <span>Go</span>
-          <ArrowIcon />
-        </button>
+        {showFocus && (
+          <button
+            type="button"
+            className="ppl-go-btn"
+            onClick={() => onFocus(project.id)}
+            disabled={!getProjectCoordinates(project)}
+            aria-label={`Show ${project.name} on map`}
+            style={{
+              width: "fit-content",
+              padding: "10px 15px",
+              background: ACCENT_BLUE,
+              color: "#fff",
+              border: "none",
+              borderRadius: "12px",
+              fontWeight: "bold",
+              cursor: "pointer",
+              fontSize: "0.8rem",
+            }}
+          >
+            <span>Go</span>
+            <ArrowIcon />
+          </button>
+        )}
       </div>
     </article>
   );
@@ -208,13 +240,16 @@ export default function App() {
   const [projects, setProjects] = useState([]);
   const [projectsError, setProjectsError] = useState(null);
   const [selectedIds, setSelectedIds] = useState([]);
+  const [selectedPairKeys, setSelectedPairKeys] = useState([]);
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({ utility: "", year: "", state: "", title: "", newOnly: false });
   const [focusedProjectId, setFocusedProjectId] = useState(null);
+  const [focusedPairKey, setFocusedPairKey] = useState(null);
   const [displayMode, setDisplayMode] = useState("overlaps");
   const [pairMatchMode, setPairMatchMode] = useState("and");
   const [overlapCategory, setOverlapCategory] = useState("all");
+  const [differentCompaniesOnly, setDifferentCompaniesOnly] = useState(false);
   const [overlaps, setOverlaps] = useState([]);
   const [overlapsLoading, setOverlapsLoading] = useState(true);
   const [overlapsError, setOverlapsError] = useState(null);
@@ -308,6 +343,12 @@ export default function App() {
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
   };
 
+  const togglePairSelection = (pairKey) => {
+    setSelectedPairKeys((previous) =>
+      previous.includes(pairKey) ? previous.filter((key) => key !== pairKey) : [...previous, pairKey],
+    );
+  };
+
   const openOverlapsMode = () => {
     setDisplayMode("overlaps");
     setOverlapsLoading(true);
@@ -355,18 +396,33 @@ export default function App() {
     }
     return true;
   };
-  const visibleOverlapPairs = overlaps.flatMap((pair, index) => {
+  const resolvedOverlapPairs = overlaps.flatMap((pair) => {
     const projectA = projectsById.get(String(pair.project_a?.id));
     const projectB = projectsById.get(String(pair.project_b?.id));
     if (!projectA || !projectB) return [];
 
-    const matchesA = filteredProjectIds.has(String(projectA.id));
-    const matchesB = filteredProjectIds.has(String(projectB.id));
-    const pairMatches = pairMatchMode === "and" ? matchesA && matchesB : matchesA || matchesB;
-    if (!pairMatches || !matchesOverlapCategory(pair, projectA, projectB)) return [];
-
-    return [{ ...pair, projectA, projectB, key: `${projectA.id}-${projectB.id}-${index}` }];
+    const projectIds = [String(projectA.id), String(projectB.id)].sort();
+    return [{ ...pair, projectA, projectB, key: projectIds.join("::") }];
   });
+  const visibleOverlapPairs = resolvedOverlapPairs.filter((pair) => {
+    const matchesA = filteredProjectIds.has(String(pair.projectA.id));
+    const matchesB = filteredProjectIds.has(String(pair.projectB.id));
+    const pairMatches = pairMatchMode === "and" ? matchesA && matchesB : matchesA || matchesB;
+    return (
+      pairMatches &&
+      (!differentCompaniesOnly || pair.cross_utility === true) &&
+      matchesOverlapCategory(pair, pair.projectA, pair.projectB)
+    );
+  });
+  const selectedPairProjectIds = [
+    ...new Set(
+      resolvedOverlapPairs
+        .filter((pair) => selectedPairKeys.includes(pair.key))
+        .flatMap((pair) => [String(pair.projectA.id), String(pair.projectB.id)]),
+    ),
+  ];
+  const activeSelectionCount = displayMode === "projects" ? selectedIds.length : selectedPairKeys.length;
+  const activeProjectIds = displayMode === "projects" ? selectedIds : selectedPairProjectIds;
   const overlapProjects = [
     ...new Map(
       visibleOverlapPairs
@@ -411,12 +467,15 @@ export default function App() {
     });
   const focusedProject = mappableProjects.find(({ project }) => project.id === focusedProjectId)?.project ?? null;
   const focusedCoordinates = getProjectCoordinates(focusedProject);
+  const focusedPair = overlapMapPairs.find((pair) => pair.key === focusedPairKey) ?? null;
+  const focusedPairCoordinates = focusedPair ? [focusedPair.coordinatesA, focusedPair.coordinatesB] : null;
   const hasActiveFilters =
-    Object.values(filters).some(Boolean) || (displayMode === "overlaps" && overlapCategory !== "all");
+    Object.values(filters).some(Boolean) ||
+    (displayMode === "overlaps" && (overlapCategory !== "all" || differentCompaniesOnly));
   const updateFilter = (name, value) => setFilters((current) => ({ ...current, [name]: value }));
 
   const handleRunAgent = async () => {
-    if (selectedIds.length < 2) {
+    if (activeProjectIds.length < 2) {
       alert("Please select at least 2 projects to run a cross-reference analysis.");
       return;
     }
@@ -424,7 +483,7 @@ export default function App() {
     setReport(null);
 
     try {
-      const data = await runCoordinationReport(selectedIds);
+      const data = await runCoordinationReport(activeProjectIds);
       setReport(data.report);
     } catch (err) {
       console.error("Agent error details:", err);
@@ -517,7 +576,7 @@ export default function App() {
             <span className="filter-count" aria-live="polite">
               {displayMode === "projects"
                 ? `Showing ${filteredProjects.length} of ${projects.length} projects · ${selectedIds.length} selected`
-                : `Showing ${visibleOverlapPairs.length} overlap pairs · ${selectedIds.length} selected`}
+                : `Showing ${visibleOverlapPairs.length} overlap pairs · ${activeSelectionCount} selected`}
             </span>
             {hasActiveFilters && (
               <button
@@ -526,6 +585,7 @@ export default function App() {
                 onClick={() => {
                   setFilters({ utility: "", year: "", state: "", title: "", newOnly: false });
                   setOverlapCategory("all");
+                  setDifferentCompaniesOnly(false);
                 }}
               >
                 Clear filters
@@ -605,15 +665,25 @@ export default function App() {
               </select>
             </label>
           )}
+          {displayMode === "overlaps" && (
+            <label className="new-project-filter">
+              <input
+                type="checkbox"
+                checked={differentCompaniesOnly}
+                onChange={(event) => setDifferentCompaniesOnly(event.target.checked)}
+              />
+              <span>Different companies only</span>
+            </label>
+          )}
         </section>
 
         <button
           type="button"
           className="clear-selection-button"
-          onClick={() => setSelectedIds([])}
-          disabled={selectedIds.length === 0}
+          onClick={() => (displayMode === "projects" ? setSelectedIds([]) : setSelectedPairKeys([]))}
+          disabled={activeSelectionCount === 0}
         >
-          Clear selected projects ({selectedIds.length})
+          {displayMode === "projects" ? "Clear selected projects" : "Clear selected pairs"} ({activeSelectionCount})
         </button>
 
         <div className="project-results">
@@ -645,24 +715,51 @@ export default function App() {
             !overlapsError &&
             visibleOverlapPairs.map((pair) => (
               <section
-                className="overlap-pair"
+                className={`overlap-pair${selectedPairKeys.includes(pair.key) ? " is-pair-selected" : ""}`}
                 key={pair.key}
                 aria-label={`${pair.projectA.name} and ${pair.projectB.name}`}
               >
+                <div className="overlap-pair-actions">
+                  <button
+                    type="button"
+                    className="ppl-go-btn overlap-pair-go"
+                    onClick={() => setFocusedPairKey(pair.key)}
+                    disabled={!getProjectCoordinates(pair.projectA) || !getProjectCoordinates(pair.projectB)}
+                    aria-label={`Show overlap between ${pair.projectA.name} and ${pair.projectB.name} on map`}
+                  >
+                    <span>Show pair on map</span>
+                    <ArrowIcon />
+                  </button>
+                  <label className="overlap-pair-selection">
+                    <input
+                      type="checkbox"
+                      checked={selectedPairKeys.includes(pair.key)}
+                      onChange={() => togglePairSelection(pair.key)}
+                      aria-label={`Select pair: ${pair.projectA.name} and ${pair.projectB.name}`}
+                    />
+                    <span>Select pair</span>
+                  </label>
+                </div>
                 <ProjectCard
                   project={pair.projectA}
-                  selected={selectedIds.includes(pair.projectA.id)}
+                  selected={selectedPairKeys.includes(pair.key)}
                   onToggleSelect={toggleSelect}
                   onFocus={setFocusedProjectId}
+                  showSelection={false}
+                  showFocus={false}
+                  compact
                 />
                 <div className="pair-connector" aria-label={`${Number(pair.distance_km).toFixed(2)} kilometers apart`}>
                   <div className="pair-distance">{Number(pair.distance_km).toFixed(2)} km</div>
                 </div>
                 <ProjectCard
                   project={pair.projectB}
-                  selected={selectedIds.includes(pair.projectB.id)}
+                  selected={selectedPairKeys.includes(pair.key)}
                   onToggleSelect={toggleSelect}
                   onFocus={setFocusedProjectId}
+                  showSelection={false}
+                  showFocus={false}
+                  compact
                 />
               </section>
             ))}
@@ -729,21 +826,42 @@ export default function App() {
             attribution="&copy; OpenStreetMap contributors"
           />
           <MapResizeObserver />
-          <MapFocusController latitude={focusedCoordinates?.[0]} longitude={focusedCoordinates?.[1]} />
+          <MapFocusController
+            latitude={displayMode === "projects" ? focusedCoordinates?.[0] : undefined}
+            longitude={displayMode === "projects" ? focusedCoordinates?.[1] : undefined}
+            pairStart={displayMode === "overlaps" ? focusedPairCoordinates?.[0] : null}
+            pairEnd={displayMode === "overlaps" ? focusedPairCoordinates?.[1] : null}
+          />
           {overlapMapPairs
             .filter((pair) => !pair.sameLocation)
             .slice()
-            .sort((a, b) => Number(b.distance_km) - Number(a.distance_km))
+            .sort((a, b) => {
+              if (a.key === focusedPairKey) return 1;
+              if (b.key === focusedPairKey) return -1;
+              return Number(b.distance_km) - Number(a.distance_km);
+            })
             .map((pair) => (
-              <Polyline
-                key={`overlap-line-${pair.key}`}
-                positions={[pair.coordinatesA, pair.coordinatesB]}
-                pathOptions={{ color: pair.color, weight: 2, opacity: 0.9 }}
-              />
+              <React.Fragment key={`overlap-line-${pair.key}`}>
+                {pair.key === focusedPairKey && (
+                  <Polyline
+                    positions={[pair.coordinatesA, pair.coordinatesB]}
+                    pathOptions={{ color: "#ffffff", weight: 9, opacity: 0.95 }}
+                  />
+                )}
+                <Polyline
+                  positions={[pair.coordinatesA, pair.coordinatesB]}
+                  pathOptions={{
+                    color: pair.color,
+                    weight: pair.key === focusedPairKey ? 5 : 2,
+                    opacity: pair.key === focusedPairKey ? 1 : 0.9,
+                  }}
+                />
+              </React.Fragment>
             ))}
           {mappableProjects.map(({ project, coordinates }) => (
             <React.Fragment key={project.id}>
-              {project.id === focusedProjectId && (
+              {((displayMode === "projects" && project.id === focusedProjectId) ||
+                (focusedPair && [focusedPair.projectA.id, focusedPair.projectB.id].includes(project.id))) && (
                 <CircleMarker
                   center={coordinates}
                   radius={22}
@@ -757,7 +875,12 @@ export default function App() {
                   interactive={false}
                 />
               )}
-              <Marker position={coordinates}>
+              <Marker
+                position={coordinates}
+                zIndexOffset={
+                  focusedPair && [focusedPair.projectA.id, focusedPair.projectB.id].includes(project.id) ? 500 : 0
+                }
+              >
                 <Popup>
                   <div style={{ maxWidth: "220px" }}>
                     <strong>{project.name}</strong>
@@ -770,7 +893,16 @@ export default function App() {
             </React.Fragment>
           ))}
           {[...colocatedProjectsByLocation.entries()].map(([locationKey, colocated]) => (
-            <Marker key={`colocated-${locationKey}`} position={colocated.coordinates} icon={COLOCATED_FLAG_ICON}>
+            <Marker
+              key={`colocated-${locationKey}`}
+              position={colocated.coordinates}
+              icon={
+                focusedPair &&
+                [focusedPair.projectA.id, focusedPair.projectB.id].every((id) => colocated.projects.has(String(id)))
+                  ? FOCUSED_COLOCATED_FLAG_ICON
+                  : COLOCATED_FLAG_ICON
+              }
+            >
               <Popup>
                 <div>
                   <strong>Projects at the same location</strong>
