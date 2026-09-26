@@ -5,3 +5,11 @@ pandas
 numpy
 scikit-learn
 requests
+
+fastapi
+uvicorn
+google-genai
+supabase
+pydantic
+python-dotenv
+requests
