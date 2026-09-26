@@ -372,7 +372,7 @@ export default function App() {
                           className="ppl-project-badges"
                           style={{ display: "flex", flexDirection: "row", gap: "4px", flexWrap: "wrap" }}
                         >
-                          {p.in_service_date && (
+                          {p.in_service_date && !isNaN(new Date(p.in_service_date).getTime()) && (
                             <FlagPill tone={ACCENT_GREEN}>{new Date(p.in_service_date).getFullYear()}</FlagPill>
                           )}
                           {p.state && <FlagPill tone={ACCENT_PURPLE}>{p.state}</FlagPill>}
