@@ -182,6 +182,14 @@ python app.py
 
 Flask serves the built app from `frontend/dist`, so the whole app runs at `http://localhost:5000` from one process.
 
+### Deploy to Render
+
+The included `render.yaml` installs the backend dependencies, builds the React
+app in `frontend/dist`, and starts Gunicorn from the repository root. Configure
+`SUPABASE_URL`, `SUPABASE_KEY`, and `GEMINI_API_KEY` as Render environment
+variables. `frontend/dist` is generated during deployment and should not be
+committed.
+
 ---
 
 ## Loading data
