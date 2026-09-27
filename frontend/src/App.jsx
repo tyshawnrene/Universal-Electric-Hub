@@ -1,5 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
+<<<<<<< HEAD
+import { CircleMarker, MapContainer, Popup, TileLayer, useMap } from "react-leaflet";
+=======
 import { CircleMarker, MapContainer, Marker, Polyline, Popup, TileLayer, useMap } from "react-leaflet";
+>>>>>>> 882060a3e6c9768232492ffcbc94224ac7bc19f4
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
@@ -874,6 +878,28 @@ export default function App() {
                   interactive={false}
                 />
               )}
+<<<<<<< HEAD
+              
+<CircleMarker
+  center={coordinates}
+  radius={project.id === focusedProjectId ? 10 : 7}
+  pathOptions={{
+    color: "#2563eb",
+    weight: 2,
+    fillColor: "#3b82f6",
+    fillOpacity: 0.8,
+  }}
+>
+  <Popup>
+    <div style={{ maxWidth: "220px" }}>
+      <strong>{project.project_name}</strong>
+      <br />
+      <p style={{ margin: "5px 0", fontSize: "0.85rem" }}>{project.project_scope}</p>
+      <em style={{ fontSize: "0.75rem" }}>Utility: {project.utility_company}</em>
+    </div>
+  </Popup>
+</CircleMarker>
+=======
               <Marker
                 position={coordinates}
                 zIndexOffset={
@@ -889,6 +915,7 @@ export default function App() {
                   </div>
                 </Popup>
               </Marker>
+>>>>>>> 882060a3e6c9768232492ffcbc94224ac7bc19f4
             </React.Fragment>
           ))}
           {[...colocatedProjectsByLocation.entries()].map(([locationKey, colocated]) => (

@@ -25,6 +25,7 @@ class ProjectRecord(BaseModel):
     latitude: Optional[float] = Field(default=None, description="Regional or corridor centerpoint latitude (e.g., county centroid or midpoint of the transmission line route).")
     longitude: Optional[float] = Field(default=None, description="Regional or corridor centerpoint longitude (e.g., county centroid or midpoint of the transmission line route).")
     in_service_date: Optional[str] = Field(default=None, description="Planned in-service date.")
+    price: Optional[float] = Field(default=None, description="Estimated total cost or capital expenditure price for the project in numeric format (e.g., in dollars).")
     project_scope: str = Field(description="Detailed technical description of the project scope.")
 
 class DocumentExtraction(BaseModel):
@@ -70,8 +71,9 @@ def parse_pdf_file(file_path: Path):
     - project_name
     - utility_company
     - state
-    - latitude and longitude: Instead of exact building-level pins, provide the **regional or corridor centerpoint** coordinates (such as the county centroid, the midpoint of the transmission line route between terminal substations, or the general area center). If an exact location isn't specified, calculate or estimate the centerpoint of the region/county mentioned.
+    - latitude and longitude: Instead of exact building-level pins, provide the **regional or corridor centerpoint** coordinates (such as the county centroid, the midpoint of the transmission line route between terminal substations, or compass center of the region).
     - in_service_date
+    - price: The estimated total cost or capital expenditure price (convert to a plain numeric float value if expressed in millions or thousands, e.g., $5.2M becomes 5200000, or leave null if not mentioned).
     - project_scope
     """
 
@@ -80,7 +82,7 @@ def parse_pdf_file(file_path: Path):
     
     for attempt in range(max_retries):
         try:
-            print(f"Running Gemini regional extraction (Attempt {attempt + 1}/{max_retries})...")
+            print(f"Running Gemini regional extraction with pricing (Attempt {attempt + 1}/{max_retries})...")
             response = client.models.generate_content(
                 model="gemini-3.5-flash-lite",
                 contents=[uploaded_file, prompt],
@@ -102,7 +104,7 @@ def parse_pdf_file(file_path: Path):
     print("Cleanup complete.")
     return response.parsed
 
-def process_single_pdf(file_path: Path):
+def process_single_pdf(file_path: Path, update_only: bool = False):
     extracted_data = parse_pdf_file(file_path)
     
     if not extracted_data or not extracted_data.projects:
@@ -115,24 +117,65 @@ def process_single_pdf(file_path: Path):
     for proj in extracted_data.projects:
         proj.in_service_date = standardize_date(proj.in_service_date)
         project_dict = proj.model_dump()
+        if proj.price is not None:
+            # Support either column name in Supabase schemas.
+            project_dict["estimated_cost"] = proj.price
         
         try:
-            supabase.table("projects").insert(project_dict).execute()
-            print(f"Inserted regional marker: [{proj.utility_company}] {proj.project_name} -> ({proj.latitude}, {proj.longitude})")
+            if update_only:
+                supabase.table("projects").update(project_dict).eq("project_name", proj.project_name).eq("utility_company", proj.utility_company).execute()
+                print(f"Updated: [{proj.utility_company}] {proj.project_name} | Cost: ${proj.price}")
+            else:
+                supabase.table("projects").insert(project_dict).execute()
+                print(f"Inserted: [{proj.utility_company}] {proj.project_name} | Cost: ${proj.price}")
             success_count += 1
         except Exception as e:
-            print(f"Failed to insert '{proj.project_name}': {e}")
+            error_text = str(e)
+            try:
+                if 'column "estimated_cost" does not exist' in error_text:
+                    legacy_payload = {k: v for k, v in project_dict.items() if k != "estimated_cost"}
+                    if update_only:
+                        supabase.table("projects").update(legacy_payload).eq("project_name", proj.project_name).eq("utility_company", proj.utility_company).execute()
+                        print(f"Updated: [{proj.utility_company}] {proj.project_name} | Cost: ${proj.price}")
+                    else:
+                        supabase.table("projects").insert(legacy_payload).execute()
+                        print(f"Inserted: [{proj.utility_company}] {proj.project_name} | Cost: ${proj.price}")
+                    success_count += 1
+                    continue
+                if 'column "price" does not exist' in error_text:
+                    normalized_payload = {k: v for k, v in project_dict.items() if k != "price"}
+                    if update_only:
+                        supabase.table("projects").update(normalized_payload).eq("project_name", proj.project_name).eq("utility_company", proj.utility_company).execute()
+                        print(f"Updated: [{proj.utility_company}] {proj.project_name} | Cost: ${proj.price}")
+                    else:
+                        supabase.table("projects").insert(normalized_payload).execute()
+                        print(f"Inserted: [{proj.utility_company}] {proj.project_name} | Cost: ${proj.price}")
+                    success_count += 1
+                    continue
+            except Exception as retry_error:
+                action = "update" if update_only else "insert"
+                print(f"Failed to {action} '{proj.project_name}' after retry: {retry_error}")
+                continue
+            action = "update" if update_only else "insert"
+            print(f"Failed to {action} '{proj.project_name}': {e}")
 
-    print(f"\nSuccessfully stored {success_count}/{len(extracted_data.projects)} regional records in Supabase!")
+    action_word = "updated" if update_only else "stored"
+    print(f"\nSuccessfully {action_word} {success_count}/{len(extracted_data.projects)} records with pricing in Supabase!")
 
-    processed_dir = script_dir / "processed"
-    processed_dir.mkdir(exist_ok=True)
-    file_path.rename(processed_dir / file_path.name)
-    print(f"Moved {file_path.name} to 'processed/' folder.")
+    if not update_only:
+        processed_dir = script_dir / "processed"
+        processed_dir.mkdir(exist_ok=True)
+        file_path.rename(processed_dir / file_path.name)
+        print(f"Moved {file_path.name} to 'processed/' folder.")
 
 if __name__ == "__main__":
+    processed_dir = script_dir / "processed"
+    processed_dir.mkdir(exist_ok=True)
+
+    for pdf_file in processed_dir.glob("*.pdf"):
+        print(f"Rescanning processed PDF (update mode): {pdf_file.name}")
+        process_single_pdf(pdf_file, update_only=True)
+
     for pdf_file in script_dir.glob("*.pdf"):
-        if "processed" in str(pdf_file.parent):
-            continue
         print(f"Found new PDF to process: {pdf_file.name}")
         process_single_pdf(pdf_file)
