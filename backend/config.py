@@ -15,6 +15,6 @@ class Config:
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
     GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16 MB upload limit
-    CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*")
+    CORS_ORIGINS = [origin.strip() for origin in os.getenv("CORS_ORIGINS", "*").split(",") if origin.strip()]
     # Production build of the React app (npm run build), served by Flask when present.
     FRONTEND_DIST = REPO_ROOT / "frontend" / "dist"

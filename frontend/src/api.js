@@ -1,7 +1,6 @@
-// All data goes through the Flask backend. URLs are relative: in dev, Vite proxies
-// /api to Flask (see vite.config.js); in production, Flask serves this app itself.
-// Set VITE_API_URL only if the backend is hosted somewhere else.
-const API_BASE = import.meta.env.VITE_API_URL ?? "";
+// Production is served by Flask, so API requests must stay on the public
+// origin. During development, Vite proxies /api to the backend.
+const API_BASE = import.meta.env.PROD ? "" : (import.meta.env.VITE_API_URL ?? "");
 
 async function request(path, options = {}) {
   const response = await fetch(`${API_BASE}${path}`, {
