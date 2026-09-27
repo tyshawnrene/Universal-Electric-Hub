@@ -22,8 +22,8 @@ class ProjectRecord(BaseModel):
     project_name: str = Field(description="Exact name of the transmission project, line rebuild, or substation upgrade.")
     utility_company: str = Field(description="Name of the utility operating the project.")
     state: str = Field(description="Two-letter state abbreviation.")
-    latitude: Optional[float] = Field(default=None, description="Regional or corridor centerpoint latitude (e.g., county centroid or midpoint of the transmission line route).")
-    longitude: Optional[float] = Field(default=None, description="Regional or corridor centerpoint longitude (e.g., county centroid or midpoint of the transmission line route).")
+    latitude: Optional[float] = Field(default=None, description="Regional/corridor centroid latitude representing a broader project footprint (county or multi-county service area midpoint, not a building pin).")
+    longitude: Optional[float] = Field(default=None, description="Regional/corridor centroid longitude representing a broader project footprint (county or multi-county service area midpoint, not a building pin).")
     in_service_date: Optional[str] = Field(default=None, description="Planned in-service date.")
     price: Optional[float] = Field(default=None, description="Estimated total cost or capital expenditure price for the project in numeric format (e.g., in dollars).")
     project_scope: str = Field(description="Detailed technical description of the project scope.")
@@ -60,6 +60,17 @@ def standardize_date(date_str: Optional[str]) -> Optional[str]:
             
     return date_str
 
+
+def normalize_regional_coordinate(value: Optional[float]) -> Optional[float]:
+    """
+    Broaden coordinate precision to reflect regional footprints rather than pinpoint
+    addresses. Rounding to 0.05° (~3-5 km east/west in most of the US) helps keep
+    overlap distance comparisons regionally consistent.
+    """
+    if value is None:
+        return None
+    return round(value * 20) / 20
+
 def parse_pdf_file(file_path: Path):
     print(f"Uploading {file_path.name} to Gemini Files API...")
     uploaded_file = client.files.upload(file=file_path)
@@ -71,7 +82,13 @@ def parse_pdf_file(file_path: Path):
     - project_name
     - utility_company
     - state
-    - latitude and longitude: Instead of exact building-level pins, provide the **regional or corridor centerpoint** coordinates (such as the county centroid, the midpoint of the transmission line route between terminal substations, or compass center of the region).
+    - latitude and longitude: Provide a **regional/corridor centroid** for a larger geographic footprint, NOT a building-level pin.
+      Coordinate selection rules:
+      1) If a route/corridor is named, use the midpoint of the corridor between endpoints.
+      2) If one county is named, use that county centroid (not city hall or utility HQ).
+      3) If multiple counties/areas are named, use a weighted midpoint across the full service area.
+      4) Favor a broader regional centroid appropriate for mapping overlap, roughly representing a 10-30 mile project influence radius.
+      5) If exact location is unknown, infer the best regional centroid from project scope text and keep it conservative.
     - in_service_date
     - price: The estimated total cost or capital expenditure price (convert to a plain numeric float value if expressed in millions or thousands, e.g., $5.2M becomes 5200000, or leave null if not mentioned).
     - project_scope
@@ -116,6 +133,8 @@ def process_single_pdf(file_path: Path, update_only: bool = False):
     success_count = 0
     for proj in extracted_data.projects:
         proj.in_service_date = standardize_date(proj.in_service_date)
+        proj.latitude = normalize_regional_coordinate(proj.latitude)
+        proj.longitude = normalize_regional_coordinate(proj.longitude)
         project_dict = proj.model_dump()
         if proj.price is not None:
             # Support either column name in Supabase schemas.
