@@ -1,3 +1,15 @@
+streamlit
+streamlit-folium
+folium
+pandas
+numpy
+scikit-learn
+
+fastapi
+uvicorn
+google-genai
+requests
+
 flask>=3.0
 flask-cors>=5.0
 python-dotenv>=1.0

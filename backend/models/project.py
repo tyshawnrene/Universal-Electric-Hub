@@ -36,8 +36,9 @@ class Project(BaseModel):
     state: Optional[str] = None
     project_type: Optional[str] = None
     scope: Optional[str] = None
-    lat: float = Field(ge=-90, le=90)
-    lng: float = Field(ge=-180, le=180)
+    # Optional: ingested rows may not be geocoded yet. They still list, but can't be mapped or compared.
+    lat: Optional[float] = Field(default=None, ge=-90, le=90)
+    lng: Optional[float] = Field(default=None, ge=-180, le=180)
     start_date: Optional[date] = None
     end_date: Optional[date] = None
     in_service_date: Optional[date] = None
