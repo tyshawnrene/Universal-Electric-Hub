@@ -10,6 +10,7 @@ uvicorn
 gunicorn
 google-genai
 requests
+httpx>=0.27
 
 flask>=3.0
 flask-cors>=5.0

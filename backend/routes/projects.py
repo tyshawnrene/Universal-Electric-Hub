@@ -1,4 +1,5 @@
 import pandas as pd
+import httpx
 from flask import Blueprint, abort, jsonify, request
 
 from backend.services.parser import to_projects
@@ -10,7 +11,10 @@ projects_bp = Blueprint("projects", __name__)
 @projects_bp.get("")
 def get_projects():
     """List projects from Supabase. Optional filters: ?state=SC&utility=dominion"""
-    projects, errors = list_projects(request.args.get("state"), request.args.get("utility"))
+    try:
+        projects, errors = list_projects(request.args.get("state"), request.args.get("utility"))
+    except (httpx.ConnectError, httpx.TimeoutException) as exc:
+        abort(503, description=f"Database connection failed: {exc}")
     return jsonify(
         count=len(projects),
         projects=[p.model_dump(mode="json") for p in projects],

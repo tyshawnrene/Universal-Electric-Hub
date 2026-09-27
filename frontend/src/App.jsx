@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
-import { CircleMarker, MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
+import { CircleMarker, MapContainer, Marker, Polyline, Popup, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerIconRetina from "leaflet/dist/images/marker-icon-2x.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
-import { fetchProjects, runCoordinationReport } from "./api";
+import { fetchOverlaps, fetchProjects, runCoordinationReport } from "./api";
 import "./App.css";
 
 L.Icon.Default.mergeOptions({
@@ -122,6 +122,8 @@ function ArrowIcon() {
 export default function App() {
   const [projects, setProjects] = useState([]);
   const [projectsError, setProjectsError] = useState(null);
+  const [overlaps, setOverlaps] = useState([]);
+  const [overlapsError, setOverlapsError] = useState(null);
   const [selectedIds, setSelectedIds] = useState([]);
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -181,14 +183,17 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    fetchProjects()
-      .then((data) => {
-        setProjects(data.projects);
-        setProjectsError(null);
+    Promise.all([fetchProjects(), fetchOverlaps()])
+      .then(([projectData, overlapData]) => {
+        setProjects(projectData.projects ?? []);
+        setOverlaps(overlapData.overlaps ?? []);
+        setProjectsError(projectData.errors?.length ? "Some project records could not be normalized." : null);
+        setOverlapsError(overlapData.errors?.length ? "Some overlap records could not be normalized." : null);
       })
       .catch((err) => {
-        console.error("Failed to load projects:", err);
+        console.error("Failed to load dashboard data:", err);
         setProjectsError(err.message);
+        setOverlapsError(err.message);
       });
   }, []);
 
@@ -223,6 +228,16 @@ export default function App() {
     .filter(({ coordinates }) => coordinates);
   const focusedProject = mappableProjects.find(({ project }) => project.id === focusedProjectId)?.project ?? null;
   const focusedCoordinates = getProjectCoordinates(focusedProject);
+  const projectCoordinates = new Map(
+    mappableProjects.map(({ project, coordinates }) => [String(project.id), coordinates]),
+  );
+  const visibleOverlaps = overlaps
+    .map((overlap) => ({
+      overlap,
+      start: projectCoordinates.get(String(overlap.project_a.id)),
+      end: projectCoordinates.get(String(overlap.project_b.id)),
+    }))
+    .filter(({ start, end }) => start && end);
   const hasActiveFilters = Object.values(filters).some(Boolean);
   const updateFilter = (name, value) => setFilters((current) => ({ ...current, [name]: value }));
 
@@ -448,6 +463,8 @@ export default function App() {
                           style={{ textAlign: "left", fontSize: "0.8rem", color: "#9ca3af" }}
                         >
                           {p.scope}
+                          {p.project_type && ` Type: ${p.project_type}.`}
+                          {p.estimated_cost != null && ` Estimated cost: $${Number(p.estimated_cost).toLocaleString()}.`}
                         </p>
                       </div>
 
@@ -519,6 +536,17 @@ export default function App() {
           />
           <MapResizeObserver />
           <MapFocusController latitude={focusedCoordinates?.[0]} longitude={focusedCoordinates?.[1]} />
+          {visibleOverlaps.map(({ overlap, start, end }) => (
+            <Polyline
+              key={`${overlap.project_a.id}-${overlap.project_b.id}`}
+              positions={[start, end]}
+              pathOptions={{
+                color: overlap.cross_utility ? "#f97316" : "#64748b",
+                opacity: 0.45,
+                weight: 2,
+              }}
+            />
+          ))}
           {mappableProjects.map(({ project, coordinates }) => (
             <React.Fragment key={project.id}>
               {project.id === focusedProjectId && (
@@ -548,6 +576,7 @@ export default function App() {
             </React.Fragment>
           ))}
         </MapContainer>
+        {overlapsError && <p className="map-data-error">{overlapsError}</p>}
       </div>
     </div>
   );

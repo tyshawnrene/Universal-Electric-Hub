@@ -1,4 +1,5 @@
 import pandas as pd
+import httpx
 from flask import Blueprint, abort, current_app, jsonify, request
 
 from backend.services.ai_report import generate_report
@@ -17,7 +18,10 @@ def overlaps_from_db():
     """
     max_km = request.args.get("max_km", 40.0, type=float)
     cross_only = request.args.get("cross_utility_only", "false").lower() == "true"
-    projects, errors = list_projects(request.args.get("state"), request.args.get("utility"))
+    try:
+        projects, errors = list_projects(request.args.get("state"), request.args.get("utility"))
+    except (httpx.ConnectError, httpx.TimeoutException) as exc:
+        abort(503, description=f"Database connection failed: {exc}")
 
     results = find_overlaps(projects, max_km)
     if cross_only:
@@ -50,7 +54,10 @@ def report():
     if not isinstance(ids, list) or len(ids) < 2:
         abort(400, description='Body must include a "project_ids" list with at least 2 ids.')
 
-    projects = get_projects_by_ids(ids)
+    try:
+        projects = get_projects_by_ids(ids)
+    except (httpx.ConnectError, httpx.TimeoutException) as exc:
+        abort(503, description=f"Database connection failed: {exc}")
     if len(projects) < 2:
         abort(404, description="Fewer than 2 of the requested projects were found.")
 

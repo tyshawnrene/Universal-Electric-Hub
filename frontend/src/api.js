@@ -3,10 +3,15 @@
 const API_BASE = import.meta.env.PROD ? "" : (import.meta.env.VITE_API_URL ?? "");
 
 async function request(path, options = {}) {
-  const response = await fetch(`${API_BASE}${path}`, {
-    headers: { "Content-Type": "application/json" },
-    ...options,
-  });
+  let response;
+  try {
+    response = await fetch(`${API_BASE}${path}`, {
+      headers: { "Content-Type": "application/json" },
+      ...options,
+    });
+  } catch (error) {
+    throw new Error(`Unable to reach the API at ${API_BASE || window.location.origin}. ${error.message}`);
+  }
   const data = await response.json().catch(() => null);
   if (!response.ok) {
     throw new Error(data?.message || `Request failed (${response.status})`);

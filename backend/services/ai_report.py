@@ -9,6 +9,7 @@ from functools import lru_cache
 from google import genai
 from google.genai import types
 from google.genai.errors import ServerError
+import httpx
 from pydantic import BaseModel, Field
 
 from backend.config import Config
@@ -77,8 +78,8 @@ def generate_report(projects: list[Project], overlaps: list[dict]) -> dict:
                 ),
             )
             return response.parsed.model_dump()
-        except ServerError:
-            # Retry 503 "model busy" spikes with a short backoff.
+        except (ServerError, httpx.ConnectError, httpx.TimeoutException):
+            # Retry transient Gemini service/network failures with backoff.
             if attempt == MAX_RETRIES - 1:
                 raise
             time.sleep((attempt + 1) * 3)
