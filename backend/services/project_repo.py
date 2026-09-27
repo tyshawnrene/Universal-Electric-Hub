@@ -2,9 +2,9 @@
 
 import pandas as pd
 
-from models.project import Project
-from services.parser import to_projects
-from services.supabase_client import get_supabase
+from backend.models.project import Project
+from backend.services.parser import to_projects
+from backend.services.supabase_client import get_supabase
 
 TABLE = "projects"
 

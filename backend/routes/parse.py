@@ -1,6 +1,6 @@
 from flask import Blueprint, abort, jsonify, request
 
-from services.parser import read_file, to_projects
+from backend.services.parser import read_file, to_projects
 
 parse_bp = Blueprint("parse", __name__)
 

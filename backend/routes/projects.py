@@ -1,8 +1,8 @@
 import pandas as pd
 from flask import Blueprint, abort, jsonify, request
 
-from services.parser import to_projects
-from services.project_repo import insert_projects, list_projects
+from backend.services.parser import to_projects
+from backend.services.project_repo import insert_projects, list_projects
 
 projects_bp = Blueprint("projects", __name__)
 
