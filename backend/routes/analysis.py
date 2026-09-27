@@ -1,10 +1,10 @@
 import pandas as pd
 from flask import Blueprint, abort, current_app, jsonify, request
 
-from services.ai_report import generate_report
-from services.parser import to_projects
-from services.project_repo import get_projects_by_ids, list_projects
-from services.proximity import find_overlaps
+from backend.services.ai_report import generate_report
+from backend.services.parser import to_projects
+from backend.services.project_repo import get_projects_by_ids, list_projects
+from backend.services.proximity import find_overlaps
 
 analysis_bp = Blueprint("analysis", __name__)
 

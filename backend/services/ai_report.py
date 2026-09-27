@@ -11,8 +11,8 @@ from google.genai import types
 from google.genai.errors import ServerError
 from pydantic import BaseModel, Field
 
-from config import Config
-from models.project import Project
+from backend.config import Config
+from backend.models.project import Project
 
 MAX_RETRIES = 3
 

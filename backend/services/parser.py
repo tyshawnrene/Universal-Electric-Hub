@@ -5,7 +5,7 @@ import io
 import pandas as pd
 from pydantic import ValidationError
 
-from models.project import Project
+from backend.models.project import Project
 
 # Maps common source column spellings onto Project field names.
 COLUMN_ALIASES = {

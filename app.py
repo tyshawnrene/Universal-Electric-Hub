@@ -2,11 +2,11 @@ from flask import Flask, abort, jsonify, send_from_directory
 from flask_cors import CORS
 from werkzeug.exceptions import HTTPException
 
-from config import Config
-from routes.analysis import analysis_bp
-from routes.health import health_bp
-from routes.parse import parse_bp
-from routes.projects import projects_bp
+from backend.config import Config
+from backend.routes.analysis import analysis_bp
+from backend.routes.health import health_bp
+from backend.routes.parse import parse_bp
+from backend.routes.projects import projects_bp
 
 
 def create_app(config_class=Config):

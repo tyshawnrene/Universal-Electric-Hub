@@ -11,8 +11,7 @@ script_dir = Path(__file__).resolve().parent
 # Look one level up for the .env file in the root directory
 load_dotenv(script_dir.parent / ".env")
 
-from .agent import run_targeted_analysis
-
+from .ai_cross_reference_popup import run_ai_cross_reference_agent
 app = FastAPI(title="GridSync FL API")
 
 # Enable CORS so your React frontend can communicate with FastAPI
@@ -40,7 +39,7 @@ def get_projects():
 @app.post("/api/analyze")
 def analyze_projects(payload: AnalysisRequest):
     try:
-        report = run_targeted_analysis(payload.project_ids)
+        report = run_ai_cross_reference_agent(payload.project_ids)
         return {"report": report}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

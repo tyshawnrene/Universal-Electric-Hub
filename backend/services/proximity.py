@@ -7,7 +7,7 @@ computed with PostGIS ST_DWithin.
 import math
 from itertools import combinations
 
-from models.project import Project
+from backend.models.project import Project
 
 EARTH_RADIUS_KM = 6371.0
 
