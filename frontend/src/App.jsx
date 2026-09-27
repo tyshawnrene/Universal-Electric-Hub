@@ -351,9 +351,17 @@ export default function App() {
 
   const openOverlapsMode = () => {
     setDisplayMode("overlaps");
+    setFocusedProjectId(null);
+    setFocusedPairKey(null);
     setOverlapsLoading(true);
     setOverlapsError(null);
     setOverlapsRetry((retry) => retry + 1);
+  };
+
+  const openProjectsMode = () => {
+    setDisplayMode("projects");
+    setFocusedProjectId(null);
+    setFocusedPairKey(null);
   };
 
   const getProjectYear = (project) => {
@@ -572,7 +580,7 @@ export default function App() {
           <button type="button" aria-pressed={displayMode === "overlaps"} onClick={openOverlapsMode}>
             Overlaps
           </button>
-          <button type="button" aria-pressed={displayMode === "projects"} onClick={() => setDisplayMode("projects")}>
+          <button type="button" aria-pressed={displayMode === "projects"} onClick={openProjectsMode}>
             Projects
           </button>
         </div>
