@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
-import { CircleMarker, MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
+import { CircleMarker, MapContainer, Marker, Polyline, Popup, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerIconRetina from "leaflet/dist/images/marker-icon-2x.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
-import { fetchProjects, runCoordinationReport } from "./api";
+import { fetchOverlaps, fetchProjects, runCoordinationReport } from "./api";
 import "./App.css";
 
 L.Icon.Default.mergeOptions({
@@ -266,8 +266,9 @@ export default function App() {
           boxSizing: "border-box",
         }}
       >
-        <h2>GridSync</h2>
-        <p style={{ color: "#9733df", fontSize: "0.85rem" }}>AI-Powered Transmission Infrastructure Intelligence</p>
+        <h2> GridSync </h2> {{color: "#850ffa", fontSize: "0.85rem"}}
+        <h3>Dashboard</h3>
+        <p style={{ color: "#edecee", fontSize: "0.85rem" }}>AI-Powered Transmission Infrastructure Intelligence</p>
 
         <button
           onClick={handleRunAgent}
@@ -545,6 +546,32 @@ export default function App() {
                 </Popup>
               </Marker>
             </React.Fragment>
+          ))}
+          {[...colocatedProjectsByLocation.entries()].map(([locationKey, colocated]) => (
+            <Marker
+              key={`colocated-${locationKey}`}
+              position={colocated.coordinates}
+              icon={
+                focusedPair &&
+                [focusedPair.projectA.id, focusedPair.projectB.id].every((id) => colocated.projects.has(String(id)))
+                  ? FOCUSED_COLOCATED_FLAG_ICON
+                  : COLOCATED_FLAG_ICON
+              }
+            >
+              <Popup>
+                <div>
+                  <strong>Projects at the same location</strong>
+                  <ul className="colocated-project-list">
+                    {[...colocated.projects.values()].map((project) => (
+                      <li key={project.id}>
+                        {project.name}
+                        {project.utility ? ` — ${project.utility}` : ""}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </Popup>
+            </Marker>
           ))}
         </MapContainer>
       </div>
