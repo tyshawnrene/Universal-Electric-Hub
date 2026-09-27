@@ -46,5 +46,6 @@ app = create_app()
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
-    
+    # Set FLASK_DEBUG=1 in .env for auto-reload and tracebacks; debug binds to localhost only.
+    debug = os.environ.get("FLASK_DEBUG", "0") == "1"
+    app.run(host="127.0.0.1" if debug else "0.0.0.0", port=port, debug=debug)
