@@ -544,7 +544,7 @@ export default function App() {
         }}
       >
         <div className="sidebar-heading">
-          <h2>GridSync FL</h2>
+          <h2>GridSync</h2> {{color: "#c81ec5", fontSize: "1.5rem", margin: 0}}
           <button
             type="button"
             className="sidebar-collapse-button"
