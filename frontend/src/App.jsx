@@ -266,7 +266,7 @@ export default function App() {
           boxSizing: "border-box",
         }}
       >
-        <h2> GridSync </h2> {{color: "#850ffa", fontSize: "0.85rem"}}
+        <h2 style={{ color: "#850ffa", fontSize: "0.85rem" }}>GridSync</h2>
         <h3>Dashboard</h3>
         <p style={{ color: "#edecee", fontSize: "0.85rem" }}>AI-Powered Transmission Infrastructure Intelligence</p>
 
