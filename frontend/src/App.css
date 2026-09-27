@@ -285,6 +285,18 @@
   border-radius: 2px;
 }
 
+.overlap-map-legend .project-marker-legend-icon {
+  position: relative;
+  width: 11px;
+  height: 11px;
+  margin: 0 5px;
+  border: 2px solid #fff;
+  border-radius: 50% 50% 50% 0;
+  background: #3388ff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+  transform: rotate(-45deg);
+}
+
 .overlap-map-legend b {
   width: 21px;
   color: #ef4444;
@@ -476,7 +488,9 @@
 
 .pair-connector {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
   padding-left: 20px;
 }
 
@@ -490,7 +504,10 @@
   padding-left: 8px;
   min-height: 38px;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
+  padding-top: 5px;
+  padding-bottom: 5px;
 }
 
 .pair-match-field {
