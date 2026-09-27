@@ -23,6 +23,7 @@ const OVERLAP_TIER_COLORS = {
   under_40km: "#1d84f5",
   unclassified: "#1d84f5",
 };
+const OVERLAP_RENDERER = L.canvas({ padding: 0.5 });
 const COLOCATED_FLAG_ICON = L.divIcon({
   className: "colocated-flag-icon",
   html: '<span aria-hidden="true">🚩</span>',
@@ -544,7 +545,7 @@ export default function App() {
         }}
       >
         <div className="sidebar-heading">
-          <h2>GridSync</h2> {{color: "#c81ec5", fontSize: "1.5rem", margin: 0}}
+          <h2 style={{ color: "#c81ec5", fontSize: "1.5rem", margin: 0 }}>GridSync</h2>
           <button
             type="button"
             className="sidebar-collapse-button"
@@ -882,7 +883,12 @@ export default function App() {
             </span>
           </div>
         )}
-        <MapContainer center={[32.74, -79.93]} zoom={6} style={{ height: "100%", width: "100%" }}>
+        <MapContainer
+          center={[32.74, -79.93]}
+          zoom={6}
+          preferCanvas
+          style={{ height: "100%", width: "100%" }}
+        >
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution="&copy; OpenStreetMap contributors"
@@ -911,6 +917,8 @@ export default function App() {
                   weight: pair.key === focusedPairKey ? 7 : 2,
                   opacity: pair.key === focusedPairKey ? 1 : 0.9,
                 }}
+                renderer={OVERLAP_RENDERER}
+                interactive={false}
               />
             ))}
           {mappableProjects.map(({ project, coordinates }) => (
