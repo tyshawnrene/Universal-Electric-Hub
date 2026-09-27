@@ -7,6 +7,7 @@ from backend.routes.analysis import analysis_bp
 from backend.routes.health import health_bp
 from backend.routes.parse import parse_bp
 from backend.routes.projects import projects_bp
+import os
 
 
 def create_app(config_class=Config):
@@ -44,4 +45,5 @@ def create_app(config_class=Config):
 app = create_app()
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
