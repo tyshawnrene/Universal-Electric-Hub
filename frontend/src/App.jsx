@@ -269,6 +269,7 @@ export default function App() {
   const [overlapsError, setOverlapsError] = useState(null);
   const [overlapsRetry, setOverlapsRetry] = useState(0);
   const [sidebarWidth, setSidebarWidth] = useState(520);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const resizingRef = useRef(false);
 
   const clampSidebarWidth = (width) => {
@@ -523,7 +524,7 @@ export default function App() {
 
   return (
     <div
-      className="app-shell"
+      className={`app-shell${sidebarCollapsed ? " sidebar-collapsed" : ""}`}
       style={{
         "--sidebar-width": `${sidebarWidth}px`,
         fontFamily: "sans-serif",
@@ -542,7 +543,18 @@ export default function App() {
           boxSizing: "border-box",
         }}
       >
-        <h2>GridSync FL</h2>
+        <div className="sidebar-heading">
+          <h2>GridSync FL</h2>
+          <button
+            type="button"
+            className="sidebar-collapse-button"
+            onClick={() => setSidebarCollapsed(true)}
+            aria-label="Collapse project panel"
+            title="Collapse project panel"
+          >
+            <span aria-hidden="true">{"x"}</span>
+          </button>
+        </div>
         <p style={{ color: "#9ca3af", fontSize: "0.85rem" }}>AI-Powered Transmission Infrastructure Intelligence</p>
 
         <button
@@ -835,6 +847,18 @@ export default function App() {
 
       {/* Map View */}
       <div className="map-pane">
+        {sidebarCollapsed && (
+          <button
+            type="button"
+            className="sidebar-expand-button"
+            onClick={() => setSidebarCollapsed(false)}
+            aria-label="Expand project panel"
+            title="Expand project panel"
+          >
+            <span aria-hidden="true">{"≡"}</span>
+            <span>Projects</span>
+          </button>
+        )}
         {displayMode === "overlaps" && (
           <div className="overlap-map-legend" aria-label="Overlap map legend">
             <strong>Overlap distance</strong>
