@@ -203,7 +203,7 @@ function ProjectCard({
           {isNewProject(project) && <FlagPill tone={ACCENT_BLUE}>New</FlagPill>}
         </div>
         <p
-          className={`ppl-project-meta${compact ? " overlap-project-scope" : ""}`}
+          className={`ppl-project-meta ${compact ? "overlap-project-scope" : "project-scope"}`}
           style={{ textAlign: "left", fontSize: "0.8rem", color: "#9ca3af" }}
         >
           {project.scope}
@@ -227,7 +227,7 @@ function ProjectCard({
               fontSize: "0.8rem",
             }}
           >
-            <span>Go</span>
+            <span>Show</span>
             <ArrowIcon />
           </button>
         )}
@@ -414,6 +414,12 @@ export default function App() {
       matchesOverlapCategory(pair, pair.projectA, pair.projectB)
     );
   });
+  const mapDisplayProjects = selectedIds.length
+    ? filteredProjects.filter((project) => selectedIds.includes(project.id) || project.id === focusedProjectId)
+    : filteredProjects;
+  const mapDisplayOverlapPairs = selectedPairKeys.length
+    ? visibleOverlapPairs.filter((pair) => selectedPairKeys.includes(pair.key) || pair.key === focusedPairKey)
+    : visibleOverlapPairs;
   const selectedPairProjectIds = [
     ...new Set(
       resolvedOverlapPairs
@@ -425,18 +431,18 @@ export default function App() {
   const activeProjectIds = displayMode === "projects" ? selectedIds : selectedPairProjectIds;
   const overlapProjects = [
     ...new Map(
-      visibleOverlapPairs
+      mapDisplayOverlapPairs
         .flatMap((pair) => [pair.projectA, pair.projectB])
         .map((project) => [String(project.id), project]),
     ).values(),
   ];
-  const mapProjects = displayMode === "overlaps" ? overlapProjects : filteredProjects;
+  const mapProjects = displayMode === "overlaps" ? overlapProjects : mapDisplayProjects;
   const mappableProjects = mapProjects
     .map((project) => ({ project, coordinates: getProjectCoordinates(project) }))
     .filter(({ coordinates }) => coordinates);
   const overlapMapPairs =
     displayMode === "overlaps"
-      ? visibleOverlapPairs.flatMap((pair) => {
+      ? mapDisplayOverlapPairs.flatMap((pair) => {
           const coordinatesA = getProjectCoordinates(pair.projectA);
           const coordinatesB = getProjectCoordinates(pair.projectB);
           if (!coordinatesA || !coordinatesB) return [];

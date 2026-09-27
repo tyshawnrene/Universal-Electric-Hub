@@ -401,7 +401,8 @@
   overflow-wrap: anywhere;
 }
 
-.overlap-project-scope {
+.overlap-project-scope,
+.project-scope {
   display: -webkit-box;
   overflow: hidden;
   -webkit-box-orient: vertical;
