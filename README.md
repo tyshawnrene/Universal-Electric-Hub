@@ -1,4 +1,4 @@
-# GridSync ⚡
+# GridSync
 
 **Find where neighboring electric utilities are about to build in the same place at the same time.**
 
