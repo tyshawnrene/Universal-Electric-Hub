@@ -204,6 +204,74 @@
   min-width: 0;
 }
 
+.sidebar-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.sidebar-heading h2 {
+  margin-bottom: 8px;
+}
+
+.sidebar-collapse-button,
+.sidebar-expand-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 36px;
+  min-height: 36px;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  background: #1e293b;
+  color: #e2e8f0;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sidebar-collapse-button span,
+.sidebar-expand-button > span:first-child {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.sidebar-collapse-button:hover,
+.sidebar-expand-button:hover {
+  border-color: #60a5fa;
+  background: #24354d;
+}
+
+.sidebar-collapse-button:focus-visible,
+.sidebar-expand-button:focus-visible {
+  outline: 2px solid #60a5fa;
+  outline-offset: 2px;
+}
+
+.sidebar-expand-button {
+  position: absolute;
+  z-index: 1001;
+  top: 12px;
+  left: 12px;
+  padding: 6px 10px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+}
+
+.sidebar-collapsed .app-sidebar {
+  flex-basis: 0 !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 0 !important;
+}
+
+.sidebar-collapsed .sidebar-splitter {
+  display: none;
+}
+
 .sidebar-splitter {
   position: relative;
   z-index: 500;
@@ -283,6 +351,18 @@
   width: 21px;
   height: 4px;
   border-radius: 2px;
+}
+
+.overlap-map-legend .project-marker-legend-icon {
+  position: relative;
+  width: 11px;
+  height: 11px;
+  margin: 0 5px;
+  border: 2px solid #fff;
+  border-radius: 50% 50% 50% 0;
+  background: #3388ff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+  transform: rotate(-45deg);
 }
 
 .overlap-map-legend b {
@@ -476,7 +556,9 @@
 
 .pair-connector {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
   padding-left: 20px;
 }
 
@@ -490,7 +572,10 @@
   padding-left: 8px;
   min-height: 38px;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
+  padding-top: 5px;
+  padding-bottom: 5px;
 }
 
 .pair-match-field {

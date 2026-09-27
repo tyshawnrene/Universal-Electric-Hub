@@ -76,6 +76,20 @@ function isNewProject(project, now = new Date()) {
   );
 }
 
+function formatServiceDateGap(gapDays) {
+  if (!Number.isFinite(gapDays) || gapDays < 0) return "Service-date difference unavailable";
+  if (gapDays === 0) return "Same service date";
+  if (gapDays < 30) return `${gapDays} ${gapDays === 1 ? "day" : "days"} apart`;
+  if (gapDays < 365) {
+    const months = Math.round(gapDays / 30.44);
+    return `About ${months} ${months === 1 ? "month" : "months"} apart`;
+  }
+
+  const years = Math.round((gapDays / 365.24) * 10) / 10;
+  const yearLabel = Number.isInteger(years) ? String(years) : years.toFixed(1);
+  return `About ${yearLabel} ${years === 1 ? "year" : "years"} apart`;
+}
+
 function MapFocusController({ latitude, longitude, pairStart, pairEnd }) {
   const map = useMap();
   const pairStartLat = pairStart?.[0];
@@ -255,6 +269,7 @@ export default function App() {
   const [overlapsError, setOverlapsError] = useState(null);
   const [overlapsRetry, setOverlapsRetry] = useState(0);
   const [sidebarWidth, setSidebarWidth] = useState(520);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const resizingRef = useRef(false);
 
   const clampSidebarWidth = (width) => {
@@ -509,7 +524,7 @@ export default function App() {
 
   return (
     <div
-      className="app-shell"
+      className={`app-shell${sidebarCollapsed ? " sidebar-collapsed" : ""}`}
       style={{
         "--sidebar-width": `${sidebarWidth}px`,
         fontFamily: "sans-serif",
@@ -528,7 +543,18 @@ export default function App() {
           boxSizing: "border-box",
         }}
       >
-        <h2>GridSync FL</h2>
+        <div className="sidebar-heading">
+          <h2>GridSync FL</h2>
+          <button
+            type="button"
+            className="sidebar-collapse-button"
+            onClick={() => setSidebarCollapsed(true)}
+            aria-label="Collapse project panel"
+            title="Collapse project panel"
+          >
+            <span aria-hidden="true">{"x"}</span>
+          </button>
+        </div>
         <p style={{ color: "#9ca3af", fontSize: "0.85rem" }}>AI-Powered Transmission Infrastructure Intelligence</p>
 
         <button
@@ -763,8 +789,14 @@ export default function App() {
                   showFocus={false}
                   compact
                 />
-                <div className="pair-connector" aria-label={`${Number(pair.distance_km).toFixed(2)} kilometers apart`}>
-                  <div className="pair-distance">{Number(pair.distance_km).toFixed(2)} km</div>
+                <div
+                  className="pair-connector"
+                  aria-label={`${Number(pair.distance_km).toFixed(2)} kilometers apart; ${formatServiceDateGap(pair.in_service_gap_days)}`}
+                >
+                  <div className="pair-distance">
+                    <div>{Number(pair.distance_km).toFixed(2)} km</div>
+                    <div className="pair-date-gap">{formatServiceDateGap(pair.in_service_gap_days)}</div>
+                  </div>
                 </div>
                 <ProjectCard
                   project={pair.projectB}
@@ -815,9 +847,25 @@ export default function App() {
 
       {/* Map View */}
       <div className="map-pane">
+        {sidebarCollapsed && (
+          <button
+            type="button"
+            className="sidebar-expand-button"
+            onClick={() => setSidebarCollapsed(false)}
+            aria-label="Expand project panel"
+            title="Expand project panel"
+          >
+            <span aria-hidden="true">{"≡"}</span>
+            <span>Projects</span>
+          </button>
+        )}
         {displayMode === "overlaps" && (
           <div className="overlap-map-legend" aria-label="Overlap map legend">
             <strong>Overlap distance</strong>
+            <span>
+              <i className="project-marker-legend-icon" aria-hidden="true" />
+              Project location
+            </span>
             <span>
               <i style={{ backgroundColor: OVERLAP_TIER_COLORS["under_1.6km"] }} />
               Under 1.6 km
