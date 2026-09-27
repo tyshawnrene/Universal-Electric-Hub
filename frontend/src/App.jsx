@@ -17,6 +17,7 @@ L.Icon.Default.mergeOptions({
 const ACCENT_BLUE = "#1d84f5";
 const ACCENT_GREEN = "#00afb8";
 const ACCENT_PURPLE = "#9d57de";
+const OVERLAP_RENDERER = L.canvas({ padding: 0.5 });
 
 // The backend sends dates as "YYYY-MM-DD". new Date() would read that as UTC midnight,
 // which is the previous day in US time zones, so build a local date instead.
@@ -529,7 +530,12 @@ export default function App() {
 
       {/* Map View */}
       <div className="map-pane">
-        <MapContainer center={[32.74, -79.93]} zoom={6} style={{ height: "100%", width: "100%" }}>
+        <MapContainer
+          center={[32.74, -79.93]}
+          zoom={6}
+          preferCanvas
+          style={{ height: "100%", width: "100%" }}
+        >
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution="&copy; OpenStreetMap contributors"
@@ -542,9 +548,12 @@ export default function App() {
               positions={[start, end]}
               pathOptions={{
                 color: overlap.cross_utility ? "#f97316" : "#64748b",
-                opacity: 0.45,
-                weight: 2,
+                opacity: 0.8,
+                weight: overlap.cross_utility ? 3 : 2,
+                pane: "overlayPane",
               }}
+              renderer={OVERLAP_RENDERER}
+              interactive={false}
             />
           ))}
           {mappableProjects.map(({ project, coordinates }) => (
